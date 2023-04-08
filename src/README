@@ -1,0 +1,29 @@
+Dans l'exemple, je fais faire un module qui s'appel "Radar". Il y aura 3 éléments à prendre en compte. 
+     - Le fichier header, qui sera appeler "Radar.h"
+     - Le fichier de travail, qui sera appeler "Radar.cpp"
+     - La définition du module, qui sera le nom du module en MAJ "RADAR"
+
+
+1. Copier/coller le fichier "Model.cpp"
+2. Renommer le fichier "Model.cpp" avec le nom de votre module -> "Radar.cpp"
+
+3. Dans le fichier "Radar.cpp", modifier le défine du module à la ligne 2
+     #ifdef MODEL -> #ifdef RADAR
+
+
+4. Copier/coller le fichier "Model.h"
+5. Renommer le fichier "Model.h" avec le nom de votre module -> "Radar.h"
+
+6. Dans le fichier "Radar.h", remplacer les différents texte "MODEL" par le nom du projet en majuscule -> "RADAR"
+     l. 2: MODEL -> RADAR
+     l. 4: MODEL_FILE_H -> RADAR_FILE_H
+     l. 5: MODEL_FILE_H -> RADAR_FILE_H
+
+7. Dans le fichier "common.h", il faut ajouter votre module comme option. A partir de la ligne 17, ajouter "#define RADAR"
+
+8. Dans le fichier "main.cpp", il faut ajouter le header de votre module a partir de la ligne 13. Ajouter "#include <Radar.h>"
+
+
+
+
+
