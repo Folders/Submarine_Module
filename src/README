@@ -22,8 +22,3 @@ Dans l'exemple, je fais faire un module qui s'appel "Radar". Il y aura 3 éléme
 7. Dans le fichier "common.h", il faut ajouter votre module comme option. A partir de la ligne 17, ajouter "#define RADAR"
 
 8. Dans le fichier "main.cpp", il faut ajouter le header de votre module a partir de la ligne 13. Ajouter "#include <Radar.h>"
-
-
-
-
-

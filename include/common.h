@@ -14,8 +14,8 @@
 //#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-//#define MODEL
-#define NAVIGATION
+#define MODEL
+//define NAVIGATION
 //#define RADAR
 
 // Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
