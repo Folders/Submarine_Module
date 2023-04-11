@@ -1,3 +1,24 @@
+////////////////////////////////////////////////////////////////////////
+//                        A faire une fois !                          //
+////////////////////////////////////////////////////////////////////////
+
+Il faut crée dans ce dossier un fichier appeler "secret.h".
+
+Dans ce fichier, il faut copier les trois lignes suivantes:
+
+// Wifi password
+const char *ssid = "MonRéseau";
+const char *password = "MonMDP";
+
+
+Il faut ensuite remplacer les deux textes par votre wifi et mot de passe.
+(Attention, fonctionne uniquement en 2.4GHz)
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+
 This directory is intended for project header files.
 
 A header file is a file containing C declarations and macro definitions
