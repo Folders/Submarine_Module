@@ -15,7 +15,7 @@
 
 // Define witch module is used (ONLY ONE)
 #define MODEL
-//define NAVIGATION
+//#define NAVIGATION
 //#define RADAR
 
 // Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
@@ -72,6 +72,9 @@ private:
     /// @return The message is valid
     bool _Receive(String msg, bool test);
 
+    /// @brief Call to send datas to server
+    void _SendServer();
+
 public:
     /// @brief Create a componant to manage the communication
     MyComm();
@@ -126,6 +129,14 @@ public:
     /// @param s String to add
     void add(String s);
 
+    /// @brief Add integer to add in buffer opened with "start"
+    /// @param s Integer to add
+    void add(int s);
+
+    /// @brief Add float to add in buffer opened with "start"
+    /// @param s Float to add
+    void add(float s);
+
     /// @brief Send to the server the datas in the buffer opened with "start"
     void send();
 
@@ -133,6 +144,12 @@ public:
     /// @param s String to send / concatenate with buffer
     void send(String s);
 
+    /// @brief Force to send the datas to server, and not the to standalone function
+    void sendForced();
+
+    /// @brief Force to send the datas to server, and not the to standalone function
+    /// @param s String to send / concatenate with buffer
+    void sendForced(String s);
 
     //////////////////////////////////////   Received   //////////////////////////////////////
 

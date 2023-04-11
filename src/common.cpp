@@ -102,61 +102,51 @@ void MyComm::callReceiveFunction()
 /////////////////////////////   Send   /////////////////////////////
 
 void MyComm::start()
-{ // Début de la sauvegarde
+{
+     // Start buffer with emtpy string
      str_out.clear();
 }
 
 void MyComm::start(char c)
-{ // Début de la sauvegarde
+{ 
+     // Start buffer with a char
      str_out = c;
 }
 
 void MyComm::start(String s)
-{ // Début de la sauvegarde
+{
+     // Start buffer with a string
      str_out = s;
 }
 
 void MyComm::add(char c)
-{ // Ajout de caractère
-
-     Serial.println("-- Add char --");
-     Serial.println("Before concat :");
-     Serial.println(str_out);
-
-     Serial.println("Text to add :");
-     Serial.print(c);
-     Serial.print(" / Length :");
-     Serial.println(sizeof(c));
-
+{
+     // Add char to buffer
      str_out.concat(c);
-
-     Serial.println("Output :");
-     Serial.println(str_out);
 }
 
 void MyComm::add(const char *c)
 {
-     Serial.println("-- Add char string --");
-     Serial.println("Before concat :");
-     Serial.println(str_out);
-     Serial.println("Text to add :");
-     Serial.println(c);
-
+     // Add array of char to buffer
      str_out.concat(c);
-
-     Serial.println("Output :");
-     Serial.println(str_out);
 }
 
 void MyComm::add(String s)
-{ // Ajout de chaîne de caractères
-
-     Serial.println("-- Add string --");
-
+{
+     // Add string of to buffer
      str_out.concat(s);
+}
 
-     Serial.println("Output :");
-     Serial.println(str_out);
+void MyComm::add(int s)
+{
+     // Add string of to buffer
+     str_out.concat(String(s));
+}
+
+void MyComm::add(float s)
+{
+     // Add string of to buffer
+     str_out.concat(String(s));
 }
 
 void MyComm::send(String s)
@@ -181,25 +171,8 @@ void MyComm::send()
      // If connected, send to UDP
      if (_connected)
      {
-          #ifndef STANDALONE
-
-          // Convert string to char*
-          #ifdef ESP8266
-          char *output = new char[str_out.length() + 1];
-          str_out.toCharArray(output, str_out.length() + 1);
-          #elif defined(ESP32)
-          
-
-          uint8_t* output = new uint8_t[str_out.length()]; // Allocation d'un tableau d'octets de taille dynamique
-          int length = str_out.getBytes(output, str_out.length());
-
-          #endif
-
-          // Send to server with UDP
-          UDP.beginPacket(Dest, 8888);
-          UDP.write(output);
-          UDP.endPacket();
-          #endif
+          // Call send to server function
+          _SendServer();
      }
      // Else, send to the module close loop function
      else
@@ -215,6 +188,58 @@ void MyComm::send()
           }
      }
      str_out.clear();
+}
+
+void MyComm::sendForced(String s)
+{
+     // Concat the input string
+     str_out.concat(s);
+
+     // Call send to server function
+     sendForced();
+}
+
+void MyComm::sendForced()
+{
+#ifdef DEBUG
+     // Log send text
+     Serial.println("");
+     Serial.println("Function forced send :");
+     Serial.println(str_out);
+#endif
+
+     // Call send to server function
+     _SendServer();
+}
+
+void MyComm::_SendServer()
+{
+#ifndef STANDALONE
+
+// Convert string to char*
+#ifdef ESP8266
+
+     // Concert string to char
+     char *output = new char[str_out.length() + 1];
+     str_out.toCharArray(output, str_out.length() + 1);
+
+     // Send to server with UDP
+     UDP.beginPacket(Dest, 8888);
+     UDP.write(output);
+     UDP.endPacket();
+
+#elif defined(ESP32)
+
+     // Convert string to uint8
+     uint8_t *output = new uint8_t[str_out.length()]; // Allocation d'un tableau d'octets de taille dynamique
+     str_out.getBytes(output, str_out.length());
+
+     UDP.beginPacket(Dest, 8888);
+     UDP.write(output, length);
+     UDP.endPacket();
+#endif
+
+#endif
 }
 
 ///////////////////////////   Received   ///////////////////////////

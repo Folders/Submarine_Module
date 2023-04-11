@@ -143,13 +143,13 @@ boolean connectUDP()
 // Try to boot to Unity server
 void BOTParam()
 {
-    //comm.start("BOT;");
-    //comm.send(TYPE);
+    comm.start("BOT;");
+    comm.sendForced(TYPE);
     
-    UDP.beginPacket(Dest, PORT);
+    /*UDP.beginPacket(Dest, PORT);
     UDP.write("BOT;");
     UDP.write(TYPE);    
-    UDP.endPacket(); 
+    UDP.endPacket(); */
     
 }
 
@@ -176,15 +176,13 @@ void WifiLevel()
   Serial.println(WiFi.RSSI());
   #endif
   
-  char mystr[6];
+  char mystr[7];
   sprintf(mystr,"%6d",WiFi.RSSI());
     
-  UDP.beginPacket(Dest, PORT);
-  UDP.write("LVL;");
-  UDP.write( mystr );
+  comm.start("LVL;");
+  comm.add(mystr);
+  comm.send();
 
-  
-  UDP.endPacket();  
 }
 
 #endif
