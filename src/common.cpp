@@ -231,11 +231,11 @@ void MyComm::_SendServer()
 #elif defined(ESP32)
 
      // Convert string to uint8
-     uint8_t *output = new uint8_t[str_out.length()]; // Allocation d'un tableau d'octets de taille dynamique
-     str_out.getBytes(output, str_out.length());
+     uint8_t *output = new uint8_t[str_out.length() + 1]; // Allocation d'un tableau d'octets de taille dynamique
+     str_out.getBytes(output, str_out.length() + 1);
 
      UDP.beginPacket(Dest, 8888);
-     UDP.write(output, length);
+     UDP.write(output, str_out.length());
      UDP.endPacket();
 #endif
 

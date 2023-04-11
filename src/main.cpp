@@ -272,7 +272,7 @@ void loop()
         {
 
             // read the packet into packetBufffer
-            int len = UDP.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+            int len = UDP.read(packetBuffer, packetSize);
 
             // and put a null char at the end of the string
             if (len > 0)
@@ -316,9 +316,7 @@ void loop()
                     // Server ask for a PING request
                     else if (str == "PIG")
                     {
-                        UDP.beginPacket(Dest, 8888);
-                        UDP.write("POG");
-                        UDP.endPacket();
+                        comm.sendForced("POG");
                     }
 
                     // Return wifi quality
