@@ -13,6 +13,10 @@
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
+
+////////  Define specific class
+
+
 ////////  Define global variables
 int testInt = 0;
 bool testBool = 0;
