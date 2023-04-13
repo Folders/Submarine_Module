@@ -16,7 +16,8 @@
 // Define witch module is used (ONLY ONE)
 //#define MODEL
 //#define NAVIGATION
-#define RADAR
+//#define RADAR
+#define ENERGY
 
 // Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
 #define TYPE "NAV"
