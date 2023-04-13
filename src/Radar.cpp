@@ -13,16 +13,89 @@
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-
 ////////  Define specific class
-class Pixel 
-{
 
+bool light_on_off = true; // for turning off the leds
+
+/// @brief Pixel management
+class Pixel
+{
+public:
+    /// @brief Red componant of pixel, between 0..1
+    float Red;
+
+    /// @brief Green componant of pixel, between 0..1
+    float Green;
+
+    /// @brief Blue componant of pixel, between 0..1
+    float Blue;
+
+    /// @brief Current brigntness of the pixel, between 0..255
+    float Brightness = 150;
+
+    /// @brief Return current color of the pixel
+    /// @return Curret red value (0..255)
+    uint8_t GetRed()
+    {
+        if (light_on_off)
+            return static_cast<uint8_t>(Red * Brightness);
+        else
+            return 0;
+    }
+
+    /// @brief Return current color of the pixel
+    /// @return Curret green value (0..255)
+    uint8_t GetGreen()
+    {
+        if (light_on_off)
+            return static_cast<uint8_t>(Green * Brightness);
+        else
+            return 0;
+    }
+
+    /// @brief Return current color of the pixel
+    /// @return Curret blue value (0..255)
+    uint8_t GetBlue()
+    {
+        if (light_on_off)
+            return static_cast<uint8_t>(Blue * Brightness);
+        else
+            return 0;
+    }
+
+    /// @brief Update color of the pixel
+    /// @param newColor New pixel color
+    void SetColor(Pixel newColor)
+    {
+        this->Red = newColor.Red;
+        this->Green = newColor.Green;
+        this->Blue = newColor.Blue;
+    }
+
+    Pixel()
+    {
+        this->Red = 0.0;
+        this->Green = 0.0;
+        this->Blue = 0.0;
+    }
+
+    Pixel(float r, float g, float b)
+    {
+        this->Red = r;
+        this->Green = g;
+        this->Blue = b;
+    }
 };
 
 ////////  Define global variables
 int testInt = 0;
 bool testBool = 0;
+
+Pixel pWater(0.0, 1.0, 1.0);
+Pixel pEarth(1.2, 0.5, 0.0);
+Pixel pChest(1.0, 0.0, 0.0);
+Pixel pTorpedo(1.5, 0.0, 0.0);
+Pixel pBorder(1.0, 1.0, 1.0);
 
 // settings
 float fadding = (85 / 100.0);
@@ -34,514 +107,348 @@ int Nb_Leds_Circle_Sml = 24;
 int Nb_Leds_Circle_Med = 35;
 float Nb_Leds_Circle_Big = 45; // need to be a float for the dividing !
 
-// arrays for the brightness, modified inside the code
-float bright_R[104]{};
-float bright_G[104]{};
-float bright_B[104]{};
-
 // arrays for the color, modified by the UDP or Serial
-float color_R[104]{};
-float color_G[104]{};
-float color_B[104]{};
+Pixel color[104]{};
 
 int RotaLed = (NUMPIXELS - Nb_Leds_Circle_Big);
 
 Ticker _Fadded;
 
-bool light_on_off = true; // for turning off the leds
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-
-void green(int i) // water
-{
-    color_R[i] = 0;
-    color_G[i] = 1;
-    color_B[i] = 0;
-}
-
-void blue(int i) // treasure
-{
-    color_R[i] = 0;
-    color_G[i] = 0;
-    color_B[i] = 1;
-}
-
-void red(int i) // enemy or torpeedo
-{
-    color_R[i] = 1;
-    color_G[i] = 0;
-    color_B[i] = 0;
-}
-
-void orange(int i) // land
-{
-    color_R[i] = 1.2;
-    color_G[i] = 0.5;
-    color_B[i] = 0;
-}
 
 /// @brief Light on all the leds
 void light_leds()
 {
     for (int i = 0; i < NUMPIXELS; i++)
     {
-        pixels.setPixelColor(i, pixels.Color((((bright_R[i]) * color_R[i]) * light_on_off), (((bright_G[i]) * color_G[i]) * light_on_off), (((bright_B[i]) * color_B[i]) * light_on_off)));
+        pixels.setPixelColor(i, pixels.Color(color[i].GetRed(), color[i].GetGreen(), color[i].GetBlue()));
     }
     pixels.show();
 }
-
 
 void faddingAll()
 {
     int RotaLed_2 = (((RotaLed - (NUMPIXELS - Nb_Leds_Circle_Big)) / (Nb_Leds_Circle_Big / Nb_Leds_Circle_Med)) + Nb_Leds_Circle_Sml);
     int RotaLed_3 = (((RotaLed - (NUMPIXELS - Nb_Leds_Circle_Big)) / (Nb_Leds_Circle_Big / Nb_Leds_Circle_Sml)));
 
+    // Manage fading
     for (int i = 0; i < NUMPIXELS; i++) // fadding R
     {
-        bright_R[i] = (bright_R[i] * fadding); // decrement all leds values
-        if (bright_R[i] < 5)
+        // No computation if brightness is null
+        if(color[i].Brightness == 0)
+            continue;
+
+        // Decrease current brightness
+        color[i].Brightness = (color[i].Brightness * fadding);
+
+        // Force to 0 at low value
+        if (color[i].Brightness < 5)
         {
-            bright_R[i] = 0;
+            color[i].Brightness = 0;
         }
     }
+    
+    // Set the rotating leds at full red brightness
+    color[RotaLed].Brightness = 150;
+    color[RotaLed_2].Brightness = 150;
+    color[RotaLed_3].Brightness = 150;
 
-    for (int i = 0; i < NUMPIXELS; i++) // fadding G
-    {
-        bright_G[i] = ((bright_G[i]) * fadding); // decrement all leds values
-        if (bright_G[i] < 5)
-        {
-            bright_G[i] = 0;
-        }
-    }
+    // light on all leds
+    light_leds(); 
 
-    for (int i = 0; i < NUMPIXELS; i++) // fadding B
-    {
-        bright_B[i] = (bright_B[i] * fadding); // decrement all leds values
-        if (bright_B[i] < 5)
-        {
-            bright_B[i] = 0;
-        }
-    }
-
-    bright_R[RotaLed] = 150.0; // set the rotating leds at full red brightness
-    bright_R[RotaLed_2] = 150.0;
-    bright_R[RotaLed_3] = 150.0;
-
-    bright_G[RotaLed] = 150.0; // set the rotating leds at full green brightness
-    bright_G[RotaLed_2] = 150.0;
-    bright_G[RotaLed_3] = 150.0;
-
-    bright_B[RotaLed] = 150.0; // set the rotating leds at full blue brightness
-    bright_B[RotaLed_2] = 150.0;
-    bright_B[RotaLed_3] = 150.0;
-
-    light_leds(); // light on all leds
-
+    // Increase rotationg leds position
     RotaLed++;
 
+    // 
     if (RotaLed > NUMPIXELS)
     {
         RotaLed = (NUMPIXELS - Nb_Leds_Circle_Big); // set the limits of the lasrt rings
     }
 }
 
-// change the colors of the specifics small circle leds
-void light_smallcircle_leds(int i, float r, float g, float b)
+/// @brief Change the colors of the specifics led of small circle
+/// @param i Element of circle to update
+/// @param pixel Pixel value of element
+void light_smallcircle_leds(int i, Pixel pixel)
 {
     switch (i)
     {
     case 0:
         for (int i = 0; i < 3; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
-        color_R[23] = r;
-        color_G[23] = g;
-        color_B[23] = b;
-
+        color[23].SetColor(pixel);
         break;
 
     case 1:
         for (int i = 3; i < 7; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 2:
         for (int i = 7; i < 11; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 3:
         for (int i = 11; i < 15; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 4:
         for (int i = 15; i < 19; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 5:
         for (int i = 19; i < 23; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
     }
 }
 
-// change the colors of the specifics medium circle leds
-void light_mediumcircle_leds(int i, float r, float g, float b)
+/// @brief Change the colors of the specifics led medium circle
+/// @param i Element of circle to update
+/// @param pixel Pixel value of element
+void light_mediumcircle_leds(int i, Pixel pixel)
 {
     switch (i)
     {
     case 0:
         for (int i = 24; i < 26; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
-        color_R[58] = r;
-        color_G[58] = g;
-        color_B[58] = b;
-
+        color[58] = pixel;
         break;
 
     case 1:
         for (int i = 26; i < 29; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 2:
         for (int i = 29; i < 32; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 3:
         for (int i = 32; i < 35; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 4:
         for (int i = 35; i < 38; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 5:
         for (int i = 38; i < 41; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 6:
         for (int i = 41; i < 44; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 7:
         for (int i = 44; i < 47; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 8:
         for (int i = 47; i < 50; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i] = pixel;
         }
-
         break;
 
     case 9:
         for (int i = 50; i < 53; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 10:
         for (int i = 53; i < 56; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 11:
         for (int i = 56; i < 58; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
     }
 }
 
-// change the colors of the specifics big circle leds
-void light_bigcircle_leds(int i, float r, float g, float b)
+/// @brief Change the colors of the specifics led large circle
+/// @param i Element of circle to update
+/// @param pixel Pixel value of element
+void light_bigcircle_leds(int i, Pixel pixel)
 {
     switch (i)
     {
     case 0:
         for (int i = 59; i < 61; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
-        color_R[103] = r;
-        color_G[103] = g;
-        color_B[103] = b;
-
+        color[103].SetColor(pixel);
         break;
 
     case 1:
         for (int i = 61; i < 63; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 2:
         for (int i = 63; i < 66; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 3:
         for (int i = 66; i < 68; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 4:
         for (int i = 68; i < 71; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 5:
         for (int i = 71; i < 73; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 6:
         for (int i = 73; i < 76; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 7:
         for (int i = 76; i < 78; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 8:
         for (int i = 78; i < 81; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 9:
         for (int i = 81; i < 83; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 10:
         for (int i = 83; i < 86; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 11:
         for (int i = 86; i < 88; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 12:
         for (int i = 88; i < 91; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 13:
         for (int i = 91; i < 93; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 14:
         for (int i = 93; i < 96; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 15:
         for (int i = 96; i < 98; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 16:
         for (int i = 98; i < 101; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
 
     case 17:
         for (int i = 101; i < 103; i++)
         {
-            color_R[i] = r;
-            color_G[i] = g;
-            color_B[i] = b;
+            color[i].SetColor(pixel);
         }
-
         break;
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
@@ -568,7 +475,7 @@ void ResetModule()
 
     for (int i = 0; i < NUMPIXELS; i++)
     {
-        green(i);
+        color[i].SetColor(pWater);
     }
 }
 
@@ -591,7 +498,7 @@ void Received()
     comm.Info_Received();
 
     // stop the radar
-    if (comm.GetCode() == "RDS") 
+    if (comm.GetCode() == "RDS")
     {
         switch (comm.GetParameter(1)[0])
         {
@@ -605,7 +512,7 @@ void Received()
     }
 
     // modifing the speed or reminicence
-    if (comm.GetCode() == "RDP") 
+    if (comm.GetCode() == "RDP")
     {
         if (rotation_speed != comm.GetParameter(1).toFloat())
         {
@@ -624,62 +531,34 @@ void Received()
         {
             switch (comm.GetParameter(1)[i])
             {
-            case 'W': // water
-                // allumer les leds de la case en vert
+                case 'W': // water
                 {
-                    float c_r = 0;
-                    float c_g = 1;
-                    float c_b = 0;
-                    light_smallcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pWater);
                 }
-
                 break;
 
-            case 'E': // earth
-                      // allumer les leds de la case en orange
-            {
-                float c_r = 0;
-                float c_g = 1;
-                float c_b = 0;
-                light_smallcircle_leds(i, c_r, c_g, c_b);
-            }
-
-            break;
-
-            case 'T': // torpeedo
-                // allumer en rouge foncé
-
+                case 'E': // earth
                 {
-                    float c_r = 1.5;
-                    float c_g = 0;
-                    float c_b = 0;
-                    light_smallcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pEarth);
                 }
-
                 break;
 
-            case 'C': // chest
-                // allumer en bleu
-
+                case 'T': // torpeedo
                 {
-                    float c_r = 0;
-                    float c_g = 0;
-                    float c_b = 1;
-                    light_smallcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pTorpedo);
                 }
-
                 break;
 
-            case 'B': // board
-                // allumer en blanc
-
+                case 'C': // chest
                 {
-                    float c_r = 1;
-                    float c_g = 1;
-                    float c_b = 1;
-                    light_smallcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pChest);
                 }
+                break;
 
+                case 'B': // board
+                {
+                    light_smallcircle_leds(i, pBorder);
+                }
                 break;
             }
         }
@@ -689,63 +568,34 @@ void Received()
         {
             switch (comm.GetParameter(2)[i])
             {
-
-            case 'W': // water
-                // allumer les leds de la case en vert
+               case 'W': // water
                 {
-                    float c_r = 0;
-                    float c_g = 1;
-                    float c_b = 0;
-                    light_mediumcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pWater);
                 }
-
                 break;
 
-            case 'E': // earth
-                      // allumer les leds de la case en orange
-            {
-                float c_r = 0;
-                float c_g = 1;
-                float c_b = 0;
-                light_mediumcircle_leds(i, c_r, c_g, c_b);
-            }
-
-            break;
-
-            case 'T': // torpeedo
-                // allumer en rouge foncé
-
+                case 'E': // earth
                 {
-                    float c_r = 1.5;
-                    float c_g = 0;
-                    float c_b = 0;
-                    light_mediumcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pEarth);
                 }
-
                 break;
 
-            case 'C': // chest
-                // allumer en bleu
-
+                case 'T': // torpeedo
                 {
-                    float c_r = 0;
-                    float c_g = 0;
-                    float c_b = 1;
-                    light_mediumcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pTorpedo);
                 }
-
                 break;
 
-            case 'B': // board
-                // allumer en blanc
-
+                case 'C': // chest
                 {
-                    float c_r = 1;
-                    float c_g = 1;
-                    float c_b = 1;
-                    light_mediumcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pChest);
                 }
+                break;
 
+                case 'B': // board
+                {
+                    light_smallcircle_leds(i, pBorder);
+                }
                 break;
             }
         }
@@ -755,63 +605,34 @@ void Received()
         {
             switch (comm.GetParameter(3)[i])
             {
-
-            case 'W': // water
-                // allumer les leds de la case en vert
+                case 'W': // water
                 {
-                    float c_r = 0;
-                    float c_g = 1;
-                    float c_b = 0;
-                    light_bigcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pWater);
                 }
-
                 break;
 
-            case 'E': // earth
-                      // allumer les leds de la case en orange
-            {
-                float c_r = 0;
-                float c_g = 1;
-                float c_b = 0;
-                light_bigcircle_leds(i, c_r, c_g, c_b);
-            }
-
-            break;
-
-            case 'T': // torpeedo
-                // allumer en rouge foncé
-
+                case 'E': // earth
                 {
-                    float c_r = 1.5;
-                    float c_g = 0;
-                    float c_b = 0;
-                    light_bigcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pEarth);
                 }
-
                 break;
 
-            case 'C': // chest
-                // allumer en bleu
-
+                case 'T': // torpeedo
                 {
-                    float c_r = 0;
-                    float c_g = 0;
-                    float c_b = 1;
-                    light_bigcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pTorpedo);
                 }
-
                 break;
 
-            case 'B': // board
-                // allumer en blanc
-
+                case 'C': // chest
                 {
-                    float c_r = 1;
-                    float c_g = 1;
-                    float c_b = 1;
-                    light_bigcircle_leds(i, c_r, c_g, c_b);
+                    light_smallcircle_leds(i, pChest);
                 }
+                break;
 
+                case 'B': // board
+                {
+                    light_smallcircle_leds(i, pBorder);
+                }
                 break;
             }
         }
