@@ -128,6 +128,7 @@ void light_leds()
     pixels.show();
 }
 
+/// @brief Increase position 
 void faddingAll()
 {
     int RotaLed_2 = (((RotaLed - (NUMPIXELS - Nb_Leds_Circle_Big)) / (Nb_Leds_Circle_Big / Nb_Leds_Circle_Med)) + Nb_Leds_Circle_Sml);
