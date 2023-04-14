@@ -14,6 +14,7 @@
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>
+#include <Energy.h>
 #include <Engine.h>
 
 #pragma warning(disable : 4068)
