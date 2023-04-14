@@ -17,6 +17,7 @@
 //#define MODEL
 //#define NAVIGATION
 //#define RADAR
+//#define ENGINE
 #define ENERGY
 
 // Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
