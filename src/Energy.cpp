@@ -53,7 +53,9 @@ void convert_UID() // convert the UID into String
 {
     char UID_str[32] = "";
     array_to_string(rfid.uid.uidByte, 4, UID_str);
+    comm.start("NFC;");
     comm.send(UID_str);
+
 }
 
 /// @brief For print the UID into Serial
@@ -185,8 +187,8 @@ void MyLoop()
         rfid.uid.size = 0;
 
         ///////////// Action on card removal ////////////
-
-        comm.send("N"); //
+       
+        comm.send("NFC;N"); //
 
 #ifdef DEBUG
         Serial.print(F("unlocked! Reason for unlocking: "));
