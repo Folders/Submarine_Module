@@ -19,7 +19,8 @@
 //#define RADAR
 //#define ENGINE
 //#define ENERGY
-#define EXTINGUISHER
+//#define EXTINGUISHER
+//#define FIRE 
 
 // Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
 #define TYPE "NAV"
