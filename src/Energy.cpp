@@ -14,7 +14,7 @@
 // define NEOPIXELS settings
 #define NEOPIXELS
 #define PIN 5
-#define NUMPIXELS 8 // insert the total of pixels
+#define NUMPIXELS 3 // insert the total of pixels
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 const int BRIGHTNESS = 255;
 

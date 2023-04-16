@@ -16,6 +16,7 @@
 #include <Radar.h>
 #include <Energy.h>
 #include <Engine.h>
+#include <Extinguisher.h>
 
 #pragma warning(disable : 4068)
 
