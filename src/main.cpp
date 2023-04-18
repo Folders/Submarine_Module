@@ -15,6 +15,7 @@
 #include <Engine.h>
 #include <Extinguisher.h>
 #include <Fire.h>
+#include <Electricity.h>
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>

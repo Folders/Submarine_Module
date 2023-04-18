@@ -20,6 +20,7 @@
 #define ENERGY
 //#define EXTINGUISHER
 //#define FIRE 
+#define ELECTRICITY
 
 // Define name for Unity
 #define TYPE "NAV"
