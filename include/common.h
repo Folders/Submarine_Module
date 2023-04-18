@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <vector>
-//#include <ESP8266WiFi.h>
 #include <WiFiUDP.h>
 
 
@@ -11,20 +10,49 @@
 #define DEBUG
 
 // Work without the server (put in comment to work with the server)
-#define STANDALONE
+//#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-#define MODEL
+//#define MODEL
 //#define NAVIGATION
 //#define RADAR
 //#define ENGINE
-//#define ENERGY
+#define ENERGY
 //#define EXTINGUISHER
 //#define FIRE 
 
-// Module name for Unity (Unique name for module, NAV, RDR, DOOR1, DOOR2...)
+// Define name for Unity
 #define TYPE "NAV"
 
+// Define module number if more then one is used
+#define NUMBER 3
+
+/*
+// Concatenate two strings
+#define PASTE_TWO_TOKENS(token_1, token_2) token_1 ## token_2
+#define PASTE_TWO_TOKENS_INDIRECT(token_1, token_2) PASTE_TWO_TOKENS(token_1 , token_2)
+#define STRINGIFY(x) #x
+#define STRINGIFY_TOKENS(token_1, token_2) STRINGIFY(PASTE_TWO_TOKENS(token_1, token_2))
+
+// Define module name for application
+#if defined(MODEL)
+#define TYPE "---"
+#elif defined(NAVIGATION)
+#define TYPE "NAV"
+#elif defined(RADAR)
+#define TYPE "RDR"
+#elif defined(ENGINE)
+#define TYPE "ENG"
+#elif defined(ENERGY)
+#define TYPE STRINGIFY_TOKENS( NRJ_ , NUMBER ) //TYPE PASTE_TWO_TOKENS_INDIRECT( NRJ_ , NUMBER ) //MODULE_TYPE("NRJ", NUMBER)
+#elif defined(EXTINGUISHER)
+#define TYPE "EXT" STR_CONCAT(NUMBER)
+#elif defined(FIRE)
+#define TYPE MODULE_TYPE("FIRE", NUMBER)
+#else
+#error "No module selected!"
+#endif
+*/
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

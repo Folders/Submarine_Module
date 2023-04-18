@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <vector>
 
-#pragma region "Global function"
 
 /// @brief Convert chars to int
 /// @param p Text to convert
@@ -44,7 +43,12 @@ float CharToFloat(char *p)
      return result;
 }
 
-#pragma endregion
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//                                      Communication                                      //
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /// @brief Create a componant to manage the communication
 MyComm::MyComm()
@@ -241,6 +245,7 @@ void MyComm::_SendServer()
 
 #endif
 }
+
 
 ///////////////////////////   Received   ///////////////////////////
 

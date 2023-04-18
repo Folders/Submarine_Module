@@ -11,15 +11,13 @@
 #include <Ticker.h>
 
 // Define all system - The used must me define in common.h
-#include <Model.h>
-#include <Navigation.h>
-#include <Radar.h>
 #include <Energy.h>
 #include <Engine.h>
 #include <Extinguisher.h>
 #include <Fire.h>
-
-#pragma warning(disable : 4068)
+#include <Model.h>
+#include <Navigation.h>
+#include <Radar.h>
 
 
 ////////////////////////
@@ -198,8 +196,13 @@ void setup()
 #ifdef DEBUG
     // Initialise Serial connection
     Serial.begin(115200);
+    
+    // Define module type
+    Serial.println("Module :");
+    Serial.println( TYPE );
 #endif
 
+  
     // Call my custom setup
     MySetup();
 
@@ -220,7 +223,6 @@ void setup()
     // Set received and send function
     comm.setReceiveFunction(&Received);
     comm.setSendFunction(&ServerSimulation);
-
 
     // Put module in reset state
     ResetModule();
