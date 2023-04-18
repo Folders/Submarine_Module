@@ -11,8 +11,8 @@
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // Set inputs
-// const int INPUTPINS[] = {15, 14, 12, 13, 4, 5};
-const int INPUTPINS[] = {15, 14, 12, 13};
+// const int INPUTPINS[] = {15, 14, 12, 13, 4, 5};      // if there is 6 interrupts
+const int INPUTPINS[] = {15, 14, 12, 13};               // if there is 4 interrupts
 const int NUMBEROFINPUTS = sizeof(INPUTPINS) / sizeof(INPUTPINS[0]);
 
 Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
@@ -187,7 +187,7 @@ void ResetModule()
     }
     pixels.show();
 
-    breackdown = false;
+    breackdown = false;     // no breackdown
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -220,11 +220,11 @@ void Received()
         Serial.println(comm.GetParameter(1));
     }
 
-    if (comm.GetCode() == "POW")
+    if (comm.GetCode() == "POW")        //recieve information from the server if it's a succes or a fail
     {
         switch (comm.GetParameter(1)[0])
         {
-        case 'F':
+        case 'F':      //fail
 
 #ifdef DEBUG
             Serial.println("Fail");
@@ -233,7 +233,7 @@ void Received()
             _Fail.attach(0.7, fail);
             break;
 
-        case 'S':
+        case 'S':       //succes
 
 #ifdef DEBUG
             Serial.println("Succes");
@@ -244,7 +244,7 @@ void Received()
         }
     }
 
-    if (comm.GetCode() == "BRN")
+    if (comm.GetCode() == "BRN")        //recieve the information of a breackdown
     {
         breackdown = comm.GetParameter(1).toInt();
     }
