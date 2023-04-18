@@ -22,6 +22,8 @@ Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
 #define NUMPIXELS 6 // insert the total of pixels
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
 
+const int NUM_CLIGN = 4 ; // number of clign for succes or fail
+
 ////////  Define global variables
 // State tickers
 Ticker _Succes;
@@ -31,6 +33,7 @@ bool breackdown;        //if there is a breakdown or not
 
 bool clign_succes;
 bool clign_fail;
+
 
 int victory_counter;
 int fail_counter;
@@ -96,7 +99,7 @@ void victory()
         pixels.show();
     }
 
-    if (victory_counter == 8) // the last clign effect
+    if (victory_counter == (NUM_CLIGN*2)) // the last clign effect
     {
         for (int i = 0; i < NUMPIXELS; i++)
         {
@@ -130,7 +133,7 @@ void fail()
         pixels.show();
     }
 
-    if (fail_counter == 8) // the last clign effect
+    if (fail_counter == (NUM_CLIGN*2)) // the last clign effect
     {
         for (int i = 0; i < NUMPIXELS; i++)
         {
