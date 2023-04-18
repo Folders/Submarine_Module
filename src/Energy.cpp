@@ -4,9 +4,9 @@
 #include <Arduino.h>
 
 //////// Add new include library
+#include <Adafruit_NeoPixel.h>
 #include <MFRC522.h>
 #include <SPI.h>
-#include <Adafruit_NeoPixel.h>
 #include <Ticker.h>
 
 ////////  Define global constantes      (ALWAYS IN MAJ)

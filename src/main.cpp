@@ -11,11 +11,11 @@
 #include <Ticker.h>
 
 // Define all system - The used must me define in common.h
+#include <Electricity.h>
 #include <Energy.h>
 #include <Engine.h>
 #include <Extinguisher.h>
 #include <Fire.h>
-#include <Electricity.h>
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>

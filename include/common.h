@@ -13,14 +13,14 @@
 //#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-//#define MODEL
+#define MODEL
 //#define NAVIGATION
 //#define RADAR
 //#define ENGINE
-#define ENERGY
+//#define ENERGY
 //#define EXTINGUISHER
 //#define FIRE 
-#define ELECTRICITY
+//#define ELECTRICITY
 
 // Define name for Unity
 #define TYPE "NAV"

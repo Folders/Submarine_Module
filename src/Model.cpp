@@ -5,6 +5,12 @@
 
 //////// Add new include library
 // #include <Encoder.h>
+#include <Adafruit_NeoPixel.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Bounce2.h>
+#include <MFRC522.h>
+#include <Ticker.h>
 
 ////////  Define global constantes      (ALWAYS IN MAJ)
 // const int TEST_IN = D0;

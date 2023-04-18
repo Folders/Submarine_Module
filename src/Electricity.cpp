@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 //////// Add new include library
-#include <Bounce2.h>
 #include <Adafruit_NeoPixel.h>
+#include <Bounce2.h>
 #include <Ticker.h>
 
 ////////  Define global constantes      (ALWAYS IN MAJ)
