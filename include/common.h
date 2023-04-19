@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <WiFiUDP.h>
+#include <string>
 
 
 // Enabled all serial communication (put in comment to disabled debug mode)
@@ -23,17 +24,11 @@
 //#define ELECTRICITY
 
 // Define name for Unity
-#define TYPE "NAV"
+//#define TYPE "NAV"
 
 // Define module number if more then one is used
 #define NUMBER 3
 
-/*
-// Concatenate two strings
-#define PASTE_TWO_TOKENS(token_1, token_2) token_1 ## token_2
-#define PASTE_TWO_TOKENS_INDIRECT(token_1, token_2) PASTE_TWO_TOKENS(token_1 , token_2)
-#define STRINGIFY(x) #x
-#define STRINGIFY_TOKENS(token_1, token_2) STRINGIFY(PASTE_TWO_TOKENS(token_1, token_2))
 
 // Define module name for application
 #if defined(MODEL)
@@ -45,15 +40,14 @@
 #elif defined(ENGINE)
 #define TYPE "ENG"
 #elif defined(ENERGY)
-#define TYPE STRINGIFY_TOKENS( NRJ_ , NUMBER ) //TYPE PASTE_TWO_TOKENS_INDIRECT( NRJ_ , NUMBER ) //MODULE_TYPE("NRJ", NUMBER)
+#define TYPE ("NRJ_" + std::to_string(NUMBER)).c_str()
 #elif defined(EXTINGUISHER)
-#define TYPE "EXT" STR_CONCAT(NUMBER)
+#define TYPE ("EXT_" + std::to_string(NUMBER)).c_str()
 #elif defined(FIRE)
-#define TYPE MODULE_TYPE("FIRE", NUMBER)
+#define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
 #else
 #error "No module selected!"
 #endif
-*/
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

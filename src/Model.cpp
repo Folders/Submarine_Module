@@ -4,17 +4,11 @@
 #include <Arduino.h>
 
 //////// Add new include library
-#include <Adafruit_NeoPixel.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <Bounce2.h>
-#include <FastLED.h>
-#include <MFRC522.h>
-#include <Ticker.h>
+//#include <Adafruit_NeoPixel.h>
 
-////////  Define global constantes      (ALWAYS IN MAJ)
-// const int TEST_IN = D0;
-// const int TEST_OUT = D5;
+////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
+// const int TEST_IN = 10;
+// const int TEST_OUT = 11;
 
 ////////  Define global variables
 int testInt = 0;
