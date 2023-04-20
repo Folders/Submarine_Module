@@ -28,6 +28,7 @@ Bounce button;
 
 const int PIN = 27;
 #define NUMPIXELS 4 // insert the total of pixels
+#define BRIGHTNESS 150 //leds brightness
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 ////  Define global variables
@@ -78,7 +79,7 @@ void MySetup()
 
     // Neo pixels
     pixels.begin();
-    pixels.setBrightness(250);
+    pixels.setBrightness(BRIGHTNESS);
     pixels.clear();
     pixels.show();
 }
@@ -143,7 +144,7 @@ void MyLoop()
         {
             if (digitalRead(INPUTPINS[i]))      //there is a connection (interrupt is on a position)     
             {
-                btn_state[i] = (read_direction + 1); // save the direction in the matrix
+                btn_state[i] = (read_direction); // save the direction in the matrix
             }
         }
         digitalWrite(OUTPUTPINS[read_direction], LOW); // turn off the output
