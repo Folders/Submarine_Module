@@ -7,7 +7,6 @@
 #include <Adafruit_NeoPixel.h>
 #include <Bounce2.h>
 
-
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // set interrupts Outputs
@@ -15,7 +14,7 @@ const int OUTPUTPINS[] = {26, 25, 33, 32, 17, 16};
 const int NUMBEROFOUTPUTS = sizeof(OUTPUTPINS) / sizeof(OUTPUTPINS[0]);
 
 // set Inputs for the interrupts
-const int INPUTPINS[] = {18, 19, 21, 22};
+const int INPUTPINS[] = {22, 21, 19, 18};
 const int NUMBEROFINPUTS = sizeof(INPUTPINS) / sizeof(INPUTPINS[0]);
 
 // Torpeedo launch button
@@ -29,20 +28,21 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 ////  Define global variables
 
-int btn_state[NUMBEROFINPUTS]{0}; // to save the position of interrupts
-int read_direction = 0;           // the position which's reading
+///@brief to save the position of interrupts
+int btn_state[NUMBEROFINPUTS]{0};
 
-int torpeedo_range = 0; // torpeedo range
+///@brief to compare btn position and see if there is a changing position
+int old_btn_state[NUMBEROFINPUTS]{0}; //
+
+/// @brief direction which is reading
+int read_direction = 0;
+
+/// @brief torpedo range
+int torpeedo_range = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-void my_function()
-{
-    // ...
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
@@ -85,6 +85,8 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
+    pixels.clear();
+    pixels.show();
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -109,13 +111,22 @@ void MyLoop()
         comm.send();
 
 #ifdef LOG
-        Serial.println("TLN");
+        Serial.print("TLN");
         for (int i = 0; i < NUMBEROFINPUTS; i++)
         {
             Serial.print(";");
             Serial.print(btn_state[i]);
         }
 #endif
+    }
+
+    if (debug)
+    {   
+        // send that the button has been released
+        if (button.fell())
+        {
+            comm.send("TLN;0");
+        }
     }
 
     // turn on each output of all the interrupts (from 1 to 6)
@@ -133,6 +144,26 @@ void MyLoop()
             }
         }
         digitalWrite(OUTPUTPINS[read_direction], LOW); // turn off the output
+    }
+
+    ///@brief send to server if a button is changing direction
+    if (debug)
+    {
+        for (int i = 0; i < NUMBEROFINPUTS; i++)
+        {
+            if (old_btn_state[i] != btn_state[i])
+            {
+                comm.start("TLN");
+                for (int i = 0; i < NUMBEROFINPUTS; i++)
+                {
+                    comm.add(";");
+                    comm.add(btn_state[i]);
+                }
+                comm.send();
+
+                old_btn_state[i] = btn_state[i];
+            }
+        }
     }
 }
 

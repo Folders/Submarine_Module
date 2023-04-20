@@ -32,6 +32,7 @@ String InputBuffer;
 
 /// @brief Send more information to the server
 bool debug = false;
+//bool debug = true;
 
 
 #ifndef STANDALONE
