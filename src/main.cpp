@@ -19,7 +19,7 @@
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>
-#include <Torpeedo.h>
+#include <Torpedo.h>
 
 
 ////////////////////////
@@ -72,6 +72,7 @@ boolean connectWifi()
   
   // Wait for connection
   #ifdef DEBUG
+  Serial.print("Connecting");
   Serial.print("Connecting");
   #endif
 

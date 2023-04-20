@@ -1,8 +1,8 @@
 #include <common.h>
-#ifdef TORPEEDO
+#ifdef TORPEDO
 
-#ifndef TORPEEDO_FILE_H
-#define TORPEEDO_FILE_H
+#ifndef TORPEDO_FILE_H
+#define TORPEDO_FILE_H
 
 #include <Arduino.h>
 
@@ -23,4 +23,4 @@ void ServerSimulation();
 
 
 #endif // FILE_H
-#endif // TORPEEDO
+#endif // TORPEDO

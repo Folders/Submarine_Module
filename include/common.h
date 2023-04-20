@@ -22,10 +22,7 @@
 //#define EXTINGUISHER
 //#define FIRE 
 //#define ELECTRICITY
-#define TORPEEDO
-
-// Define name for Unity
-//#define TYPE "NAV"
+#define TORPEDO
 
 // Define module number if more then one is used
 #define NUMBER 3
@@ -46,6 +43,8 @@
 #define TYPE ("EXT_" + std::to_string(NUMBER)).c_str()
 #elif defined(FIRE)
 #define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
+#elif defined(TORPEDO)
+#define TYPE "TRP"
 #else
 #error "No module selected!"
 #endif
