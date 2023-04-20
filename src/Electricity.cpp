@@ -22,11 +22,16 @@ Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
 #define NUMPIXELS 6 // insert the total of pixels
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
 
-const int NUM_CLIGN = 4; // number of clign for succes or fail
+/// @brief number of clign for succes or fail
+const int NUM_CLIGN = 4;
 
 ////////  Define global variables
 // State tickers
+
+/// @brief ticker for succes
 Ticker _Succes;
+
+/// @brief ticker for fail
 Ticker _Fail;
 
 /// @brief If there is a breakdown or not
@@ -34,6 +39,7 @@ bool breackdown;
 
 bool clign_succes;
 bool clign_fail;
+
 
 int victory_counter;
 int fail_counter;
@@ -47,13 +53,19 @@ void interrupts_read()
 {
     for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
+        
         buttons[i].update();
+
         if (buttons[i].fell()) // inetrrupt has been pressed
         {
-            // send information to server
-            comm.start("BTN;");
-            comm.add(i);
-            comm.send(";1");
+            // if there is a breakdown or debug, send button state
+            if (breackdown || debug)
+            {
+                // send information to server
+                comm.start("BTN;");
+                comm.add(i);
+                comm.send(";1");
+            }
 
 #ifdef LOG
             Serial.print("Boutton ");
@@ -170,10 +182,7 @@ void MySetup()
     // Neo pixels
     pixels.begin();
     pixels.setBrightness(50);
-    for (int i = 0; i < NUMPIXELS; i++)
-    {
-        pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0));
-    }
+    pixels.clear();
     pixels.show();
 
     breackdown = false;
@@ -185,10 +194,7 @@ void MySetup()
 void ResetModule()
 {
     /// Turn off all leds
-    for (int i = 0; i < NUMPIXELS; i++)
-    {
-        pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the leds
-    }
+    pixels.clear();
     pixels.show();
 
     breackdown = false; // no breackdown
