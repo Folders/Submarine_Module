@@ -311,11 +311,6 @@ void read_buttons()
 /// @brief Setup function for the module
 void MySetup()
 {
-// Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-#ifdef DEBUG
-    Serial.println("--- Model ---");
-#endif
-
     // set input's IO
     pinMode(TRIGGER, INPUT);
     pinMode(CONTACT, INPUT);
@@ -339,7 +334,7 @@ void MySetup()
     display.clearDisplay();
     display.display();
 
-#ifdef DEBUG
+#ifdef LOG
     Serial.println("Start");
 #endif
 
@@ -429,11 +424,11 @@ void ServerSimulation()
         Serial.println("WOOW, j'ai reçu un NVC en local !");
     }
 
-    /*
+
     // decrease percent if trigger's on
-    if (comm.GetCode() == "ERX;1")
+    if (comm.GetCode() == "EXR" && comm.GetParameter(1) == "1")
     {
-        Serial.println("WOOW, j'ai reçu un NVC en local !");
+        
         // DO something
         if (percent > 5)
         {
@@ -448,7 +443,7 @@ void ServerSimulation()
     }
      
     // decrease percent if trigger's on
-    if (comm.GetCode() == "ERC;1")
+    if (comm.GetCode() == "EXC" && comm.GetParameter(1) == "1")
     {
         // DO something
         if (percent < 100)
@@ -457,11 +452,11 @@ void ServerSimulation()
         }
         else 
         {
-                percent = 100;
+            percent = 100;
         }
             
     }
-    */
+
 }
 
 #endif

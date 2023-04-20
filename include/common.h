@@ -8,10 +8,10 @@
 
 
 // Enabled all serial communication (put in comment to disabled debug mode)
-#define DEBUG
+#define LOG
 
 // Work without the server (put in comment to work with the server)
-#define STANDALONE
+//#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define MODEL
@@ -21,8 +21,8 @@
 //#define ENERGY
 //#define EXTINGUISHER
 //#define FIRE 
-//#define ELECTRICITY
-#define TORPEDO
+#define ELECTRICITY
+//#define TORPEDO
 
 // Define module number if more then one is used
 #define NUMBER 3
@@ -35,6 +35,8 @@
 #define TYPE "NAV"
 #elif defined(RADAR)
 #define TYPE "RDR"
+#elif defined(ELECTRICITY)
+#define TYPE "ELC"
 #elif defined(ENGINE)
 #define TYPE "ENG"
 #elif defined(ENERGY)
@@ -224,5 +226,8 @@ extern MyComm comm;
 extern IPAddress Dest;
 extern WiFiUDP UDP;
 #endif // STANDALONE
+
+/// @brief Send more information to the server
+extern bool debug;
 
 #endif // COMMON_FILE_H

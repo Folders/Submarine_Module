@@ -93,10 +93,6 @@ void ir_indicator()
 /// @brief Setup function for the module
 void MySetup()
 {
-// Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-#ifdef DEBUG
-    Serial.println("--- Model ---");
-#endif
 
     for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
@@ -203,7 +199,7 @@ void MyLoop()
             comm.add(i);
             comm.send(";1");
 
-#ifdef DEBUG
+#ifdef LOG
             Serial.println("FIS;");
             Serial.print(i);
             Serial.print(";1");
@@ -221,7 +217,7 @@ void MyLoop()
             comm.add(i);
             comm.send(";0");
 
-#ifdef DEBUG
+#ifdef LOG
             Serial.println("FIS;");
             Serial.print(i);
             Serial.print(";0");

@@ -12,7 +12,7 @@
 
 // Set inputs
 // const int INPUTPINS[] = {15, 14, 12, 13, 4, 5};      // if there is 6 interrupts
-const int INPUTPINS[] = {15, 14, 12, 13};               // if there is 4 interrupts
+const int INPUTPINS[] = {15, 14, 12, 13}; // if there is 4 interrupts
 const int NUMBEROFINPUTS = sizeof(INPUTPINS) / sizeof(INPUTPINS[0]);
 
 Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
@@ -22,18 +22,18 @@ Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
 #define NUMPIXELS 6 // insert the total of pixels
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
 
-const int NUM_CLIGN = 4 ; // number of clign for succes or fail
+const int NUM_CLIGN = 4; // number of clign for succes or fail
 
 ////////  Define global variables
 // State tickers
 Ticker _Succes;
 Ticker _Fail;
 
-bool breackdown;        //if there is a breakdown or not
+/// @brief If there is a breakdown or not
+bool breackdown;
 
 bool clign_succes;
 bool clign_fail;
-
 
 int victory_counter;
 int fail_counter;
@@ -41,12 +41,6 @@ int fail_counter;
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-void my_function()
-{
-    // ...
-}
 
 /// @brief Read interrupts and send to server if pressed
 void interrupts_read()
@@ -61,7 +55,7 @@ void interrupts_read()
             comm.add(i);
             comm.send(";1");
 
-#ifdef DEBUG
+#ifdef LOG
             Serial.print("Boutton ");
             Serial.print(i);
             Serial.print(" : Appuyé");
@@ -72,6 +66,18 @@ void interrupts_read()
             {
                 pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
                 pixels.show();
+            }
+        }
+
+        // For debug
+        if (debug)
+        {
+            if (buttons[i].rose()) // inetrrupt has been released
+            {
+                // send information to server
+                comm.start("BTN;");
+                comm.add(i);
+                comm.send(";0");
             }
         }
     }
@@ -99,7 +105,7 @@ void victory()
         pixels.show();
     }
 
-    if (victory_counter == (NUM_CLIGN*2)) // the last clign effect
+    if (victory_counter == (NUM_CLIGN * 2)) // the last clign effect
     {
         for (int i = 0; i < NUMPIXELS; i++)
         {
@@ -133,7 +139,7 @@ void fail()
         pixels.show();
     }
 
-    if (fail_counter == (NUM_CLIGN*2)) // the last clign effect
+    if (fail_counter == (NUM_CLIGN * 2)) // the last clign effect
     {
         for (int i = 0; i < NUMPIXELS; i++)
         {
@@ -153,11 +159,6 @@ void fail()
 /// @brief Setup function for the module
 void MySetup()
 {
-// Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-#ifdef DEBUG
-    Serial.println("--- Model ---");
-#endif
-
     // set inputs
     for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
@@ -190,7 +191,7 @@ void ResetModule()
     }
     pixels.show();
 
-    breackdown = false;     // no breackdown
+    breackdown = false; // no breackdown
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -223,22 +224,22 @@ void Received()
         Serial.println(comm.GetParameter(1));
     }
 
-    if (comm.GetCode() == "POW")        //recieve information from the server if it's a succes or a fail
+    if (comm.GetCode() == "POW") // recieve information from the server if it's a succes or a fail
     {
         switch (comm.GetParameter(1)[0])
         {
-        case 'F':      //fail
+        case 'F': // fail
 
-#ifdef DEBUG
+#ifdef LOG
             Serial.println("Fail");
 #endif
 
             _Fail.attach(0.7, fail);
             break;
 
-        case 'S':       //succes
+        case 'S': // succes
 
-#ifdef DEBUG
+#ifdef LOG
             Serial.println("Succes");
 #endif
 
@@ -247,7 +248,7 @@ void Received()
         }
     }
 
-    if (comm.GetCode() == "BRN")        //recieve the information of a breackdown
+    if (comm.GetCode() == "BRN") // recieve the information of a breackdown
     {
         breackdown = comm.GetParameter(1).toInt();
     }

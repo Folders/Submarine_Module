@@ -165,7 +165,7 @@ void MyComm::send(String s)
 void MyComm::send()
 {
 
-#ifdef DEBUG
+#ifdef LOG
      // Log send text
      Serial.println("");
      Serial.println("Function send :");
@@ -205,7 +205,7 @@ void MyComm::sendForced(String s)
 
 void MyComm::sendForced()
 {
-#ifdef DEBUG
+#ifdef LOG
      // Log send text
      Serial.println("");
      Serial.println("Function forced send :");
@@ -362,7 +362,7 @@ int MyComm::GetSize()
 
 void MyComm::Info_Received()
 {
-#ifdef DEBUG
+#ifdef LOG
 
      // Get current code
      Serial.println("Received code is : '" + GetCode() + "'");

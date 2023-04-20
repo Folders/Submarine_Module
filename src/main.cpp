@@ -30,6 +30,9 @@ MyComm comm;
 /// @brief Serial input string buffer
 String InputBuffer;
 
+/// @brief Send more information to the server
+bool debug = false;
+
 
 #ifndef STANDALONE
 
@@ -64,14 +67,14 @@ boolean connectWifi()
   int i = 0;
   WiFi.begin(ssid, password);
 
-  #ifdef DEBUG
+  #ifdef LOG
   Serial.println("");
   Serial.println("Connecting to WiFi");
   #endif
   
   
   // Wait for connection
-  #ifdef DEBUG
+  #ifdef LOG
   Serial.print("Connecting");
   Serial.print("Connecting");
   #endif
@@ -80,7 +83,7 @@ boolean connectWifi()
   {
     delay(500);
     
-    #ifdef DEBUG
+    #ifdef LOG
     Serial.print(".");
     #endif
     
@@ -92,7 +95,7 @@ boolean connectWifi()
   }
 
  
-  #ifdef DEBUG 
+  #ifdef LOG 
   if (state){
     Serial.println("");
     Serial.print("Connected to ");
@@ -121,7 +124,7 @@ boolean connectUDP()
 {
   boolean state = false;
   
-  #ifdef DEBUG 
+  #ifdef LOG 
   Serial.println("");
   Serial.println("Starting UDP server...");
   #endif
@@ -132,7 +135,7 @@ boolean connectUDP()
   }
 
 
-  #ifdef DEBUG 
+  #ifdef LOG 
   if (state){
     Serial.println("UDP running.");
   }
@@ -175,7 +178,7 @@ void T_1s()
 void WifiLevel()
 {
      
-  #ifdef DEBUG
+  #ifdef LOG
   Serial.println("");
   Serial.print("Wifi level : ");
   Serial.println(WiFi.RSSI());
@@ -196,13 +199,15 @@ void WifiLevel()
 void setup()
 {
 
-#ifdef DEBUG
+#ifdef LOG
     // Initialise Serial connection
     Serial.begin(115200);
     
     // Define module type
-    Serial.println("Module :");
-    Serial.println( TYPE );
+    Serial.println("");
+    Serial.print("--- ");
+    Serial.print( TYPE );
+    Serial.println(" ---");
 #endif
 
   
@@ -239,7 +244,7 @@ void setup()
 void loop()
 {
 
-#ifdef DEBUG
+#ifdef LOG
     // Check if text is available on serial port
     if (Serial.available() > 0)
     {
@@ -292,12 +297,7 @@ void loop()
             // Test si message de réception du master
 
             str = String(packetBuffer);
-
-#ifdef DEBUG
-            Serial.println("");
-            Serial.println("Message reçu : ");
-            Serial.println(str);
-#endif
+ 
 
             // Check if connection to Unity server is done
             if (masterConnected)
@@ -333,6 +333,13 @@ void loop()
                     {
                         WifiLevel();
                     }
+
+                    // But module in debug mode
+                    else if (str == "DBG")
+                    {
+                        // Change debug option (with ternary operator ! Amazing !!)
+                        debug = comm.GetParameter(1) == "1" ? true : false;
+                    }
                     else
                     {
                         // Send other message to model
@@ -353,7 +360,7 @@ void loop()
 
                     comm.Started();
 
-#ifdef DEBUG
+#ifdef LOG
                     Serial.println("");
                     Serial.println("Connected to server : ");
                     Serial.println(Dest);

@@ -33,8 +33,8 @@ void my_function()
 /// @brief Setup function for the module
 void MySetup()
 {
-    // Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-    #ifdef DEBUG
+    // Suround every "Serial" order between "#ifdef LOG" and "#endif"
+    #ifdef LOG
     Serial.println("--- Model ---");
     #endif
 }

@@ -66,7 +66,7 @@ void printHex(byte *buffer, byte bufferSize)
     for (byte i = 0; i < bufferSize; i++)
     {
 
-#ifdef DEBUG
+#ifdef LOG
         Serial.print(((buffer[i]) >> 4) & 0x0F, HEX);
         Serial.print(buffer[i] & 0x0F, HEX);
         Serial.print(" ");
@@ -118,11 +118,6 @@ void percent_leddisplay()
 /// @brief Setup function for the module
 void MySetup()
 {
-// Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-#ifdef DEBUG
-    Serial.println("--- Model ---");
-#endif
-
     // RFID setup
     SPI.begin();     // Init SPI bus
     rfid.PCD_Init(); // Init MFRC522
@@ -173,7 +168,7 @@ void MyLoop()
 
         //////////// Actions on card detection //////////////////
 
-#ifdef DEBUG
+#ifdef LOG
         Serial.print(F("locked! NUID tag: "));
         printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
         Serial.println();
@@ -190,7 +185,7 @@ void MyLoop()
        
         comm.send("NFC;N"); //
 
-#ifdef DEBUG
+#ifdef LOG
         Serial.print(F("unlocked! Reason for unlocking: "));
         Serial.println(rfid.GetStatusCodeName(result));
 #endif

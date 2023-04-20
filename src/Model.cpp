@@ -11,8 +11,8 @@
 // const int TEST_OUT = 11;
 
 ////////  Define global variables
-int testInt = 0;
-bool testBool = 0;
+int _testInt = 0;
+bool _testBool = 0;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,8 +33,8 @@ void my_function()
 /// @brief Setup function for the module
 void MySetup()
 {
-    // Suround every "Serial" order between "#ifdef DEBUG" and "#endif"
-    #ifdef DEBUG
+    // Suround every "Serial" order between "#ifdef LOG" and "#endif"
+    #ifdef LOG
     Serial.println("--- Model ---");
     #endif
 }

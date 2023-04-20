@@ -38,7 +38,7 @@ int Wait = 0;
 void StatusUpdate(char sta) 
 { 
   
-  #ifdef DEBUG
+  #ifdef LOG
   Serial.println("");
   Serial.println("Sta : ");
   Serial.println(sta);
