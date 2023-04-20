@@ -19,6 +19,7 @@
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>
+#include <Torpeedo.h>
 
 
 ////////////////////////

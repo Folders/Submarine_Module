@@ -11,10 +11,10 @@
 #define DEBUG
 
 // Work without the server (put in comment to work with the server)
-//#define STANDALONE
+#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-#define MODEL
+//#define MODEL
 //#define NAVIGATION
 //#define RADAR
 //#define ENGINE
@@ -22,6 +22,7 @@
 //#define EXTINGUISHER
 //#define FIRE 
 //#define ELECTRICITY
+#define TORPEEDO
 
 // Define name for Unity
 //#define TYPE "NAV"
