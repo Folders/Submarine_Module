@@ -21,7 +21,6 @@
 #include <Radar.h>
 #include <Torpedo.h>
 
-
 ////////////////////////
 
 /// @brief Communication object
@@ -32,7 +31,6 @@ String InputBuffer;
 
 /// @brief Send more information to the server
 bool debug = false;
-
 
 #ifndef STANDALONE
 
@@ -57,57 +55,57 @@ String str;
 // Timmer
 Ticker Time_Sec;
 
-
 ///////////////////////////////////////  Wifi function  ///////////////////////////////////////
 
 // connect to wifi – returns true if successful or false if not
 boolean connectWifi()
 {
-  boolean state = true;
-  int i = 0;
-  WiFi.begin(ssid, password);
+    boolean state = true;
+    int i = 0;
+    WiFi.begin(ssid, password);
 
-  #ifdef LOG
-  Serial.println("");
-  Serial.println("Connecting to WiFi");
-  #endif
-  
-  
-  // Wait for connection
-  #ifdef LOG
-  Serial.print("Connecting");
-  Serial.print("Connecting");
-  #endif
+#ifdef LOG
+    Serial.println("");
+    Serial.println("Connecting to WiFi");
+#endif
 
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    
-    #ifdef LOG
-    Serial.print(".");
-    #endif
-    
-    if (i > 10){
-      state = false;
-      break;
+// Wait for connection
+#ifdef LOG
+    Serial.print("Connecting");
+    Serial.print("Connecting");
+#endif
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+
+#ifdef LOG
+        Serial.print(".");
+#endif
+
+        if (i > 10)
+        {
+            state = false;
+            break;
+        }
+        i++;
     }
-    i++;
-  }
 
- 
-  #ifdef LOG 
-  if (state){
-    Serial.println("");
-    Serial.print("Connected to ");
-    Serial.println(ssid);
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-  else {
-    Serial.println("");
-    Serial.println("Connection failed.");
-  }
-  #endif
+#ifdef LOG
+    if (state)
+    {
+        Serial.println("");
+        Serial.print("Connected to ");
+        Serial.println(ssid);
+        Serial.print("IP address: ");
+        Serial.println(WiFi.localIP());
+    }
+    else
+    {
+        Serial.println("");
+        Serial.println("Connection failed.");
+    }
+#endif
 
     // Save current IP as destination
     Dest = WiFi.localIP();
@@ -115,82 +113,78 @@ boolean connectWifi()
     // Change IP adresse to broadcast
     Dest[3] = 255;
 
-  return state;
+    return state;
 }
-
 
 // connect to UDP – returns true if successful or false if not
 boolean connectUDP()
 {
-  boolean state = false;
-  
-  #ifdef LOG 
-  Serial.println("");
-  Serial.println("Starting UDP server...");
-  #endif
+    boolean state = false;
 
-  // Check if UDP is open
-  if(UDP.begin(PORT) == 1){
-    state = true;
-  }
+#ifdef LOG
+    Serial.println("");
+    Serial.println("Starting UDP server...");
+#endif
 
+    // Check if UDP is open
+    if (UDP.begin(PORT) == 1)
+    {
+        state = true;
+    }
 
-  #ifdef LOG 
-  if (state){
-    Serial.println("UDP running.");
-  }
-  else {
-    Serial.println("Fail to open UDP server.");
-  }
-  #endif  
-  
-  return state;
+#ifdef LOG
+    if (state)
+    {
+        Serial.println("UDP running.");
+    }
+    else
+    {
+        Serial.println("Fail to open UDP server.");
+    }
+#endif
+
+    return state;
 }
-
 
 // Try to boot to Unity server
 void BOTParam()
 {
     comm.start("BOT;");
     comm.sendForced(TYPE);
-    
+
     /*UDP.beginPacket(Dest, PORT);
     UDP.write("BOT;");
-    UDP.write(TYPE);    
+    UDP.write(TYPE);
     UDP.endPacket(); */
-    
 }
-
 
 // Every seconde, try to reach Unity server
 void T_1s()
 {
-  
-  if (!masterConnected){
-    // Send start
-    BOTParam();   
-  }
 
+    if (!masterConnected)
+    {
+        // Send start
+        BOTParam();
+    }
 }
-
 
 // Get current wifi level
 void WifiLevel()
 {
-     
-  #ifdef LOG
-  Serial.println("");
-  Serial.print("Wifi level : ");
-  Serial.println(WiFi.RSSI());
-  #endif
-  
-  char mystr[7];
-  sprintf(mystr,"%6d",WiFi.RSSI());
-    
-  comm.start("LVL;");
-  comm.add(mystr);
-  comm.send();
 
+#ifdef LOG
+    Serial.println("");
+    Serial.print("Wifi level : ");
+    Serial.println(WiFi.RSSI());
+#endif
+
+    char mystr[7];
+    sprintf(mystr, "%6d", WiFi.RSSI());
+
+    comm.start("LVL;");
+    comm.add(mystr);
+    comm.send();
 }
 
 #endif
@@ -202,15 +196,14 @@ void setup()
 #ifdef LOG
     // Initialise Serial connection
     Serial.begin(115200);
-    
+
     // Define module type
     Serial.println("");
     Serial.print("--- ");
-    Serial.print( TYPE );
+    Serial.print(TYPE);
     Serial.println(" ---");
 #endif
 
-  
     // Call my custom setup
     MySetup();
 
@@ -234,9 +227,7 @@ void setup()
 
     // Put module in reset state
     ResetModule();
-
 }
-
 
 /////////////////////////////////////////   LOOP   ////////////////////////////////////////
 
@@ -297,14 +288,13 @@ void loop()
             // Test si message de réception du master
 
             str = String(packetBuffer);
- 
 
             // Check if connection to Unity server is done
             if (masterConnected)
             {
 
                 // Parse received datas and check if it's for us
-                if ( comm.Receive(str) )
+                if (comm.Receive(str))
                 {
 
                     // Convert code in string
@@ -337,8 +327,24 @@ void loop()
                     // But module in debug mode
                     else if (str == "DBG")
                     {
-                        // Change debug option (with ternary operator ! Amazing !!)
-                        debug = comm.GetParameter(1) == "1" ? true : false;
+                        switch (comm.GetParameter(1)[0])
+                        {
+                        case '0':
+                            debug = false;
+                            break;
+
+                        case '1':
+                            debug = true;
+                            break;
+
+                        case '?':
+                            if (debug)
+                                comm.send("DBG;1");
+                            else
+
+                                comm.send("DBG;0");
+                            break;
+                        }
                     }
                     else
                     {
