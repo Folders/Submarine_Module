@@ -11,7 +11,7 @@
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-//#define STANDALONE
+#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define ELECTRICITY
@@ -19,10 +19,15 @@
 //#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
+
+//#define ELECTRICITY
+
+
 //#define TORPEDO
 #define MODEL
 //#define NAVIGATION
 //#define RADAR
+
 
 // Define module number if more then one is used
 #define NUMBER 3
