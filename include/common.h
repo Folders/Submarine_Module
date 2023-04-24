@@ -2,27 +2,32 @@
 #define COMMON_FILE_H
 
 #include <Arduino.h>
+#include <string>
 #include <vector>
 #include <WiFiUDP.h>
-#include <string>
 
 
-// Enabled all serial communication (put in comment to disabled debug mode)
+// Enabled all serial communication (put in comment to disabled log mode)
 #define LOG
 
 // Work without the server (put in comment to work with the server)
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-//#define MODEL
-//#define NAVIGATION
-//#define RADAR
-//#define ENGINE
+//#define ELECTRICITY
 //#define ENERGY
+//#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
+
 //#define ELECTRICITY
-#define TORPEDO
+
+
+//#define TORPEDO
+#define MODEL
+//#define NAVIGATION
+//#define RADAR
+
 
 // Define module number if more then one is used
 #define NUMBER 3
