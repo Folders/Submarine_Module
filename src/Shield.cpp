@@ -723,10 +723,10 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
-    int countdown = 20; // countdown duration
+    countdown = 20; // countdown duration
 
-    byte game_state = 0;  // games states
-    byte game_result = 0; // victory or fail
+    game_state = 0;  // games states
+    game_result = 0; // victory or fail
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -827,7 +827,7 @@ void Received()
         torpedo_direction = comm.GetParameter(1).toInt();
         int i = comm.GetParameter(2).toInt();
         countdown = ((i + 1) * TORPEDO_SPEED);
-        
+
 #ifdef LOG
         Serial.println("START");
 #endif
