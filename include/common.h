@@ -52,7 +52,7 @@
 #elif defined(FIRE)
 #define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
 #elif defined(SHIELD)
-#define TYPE "SHD"
+#define TYPE "SHI"
 #elif defined(TORPEDO)
 #define TYPE "TRP"
 #else

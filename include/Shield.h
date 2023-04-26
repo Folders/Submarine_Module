@@ -21,6 +21,9 @@ void Received();
 /// @brief Function called when a message is send in close loop
 void ServerSimulation();
 
+void un_Fail();
+void un_Victory();
+
 
 #endif // FILE_H
 #endif // SHIELD
