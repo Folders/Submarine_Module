@@ -22,7 +22,7 @@ const int SUBMARINE_WIDTH = 11;
 const int SUBMARINE_LENGTH = 20;
 
 // calibre for the minimap
-const int OFFSET_M_X = 219;
+const int OFFSET_M_X = 241; //219
 const int OFFSET_M_Y = 1;
 
 // walls
@@ -274,12 +274,13 @@ void draw_minimap()
     }
 
 // Draw text on the minimap
-#ifdef LOG
+    if (debug)
+    {
     tft.setCursor((OFFSET_M_X - 10), OFFSET_M_Y);
     tft.setTextColor(ILI9341_WHITE);
     tft.setTextSize(1);
     tft.println(torpedo_direction);
-#endif
+    }
 
     // draw walls
     for (int iX = 0; iX <= 5; iX++)
@@ -788,15 +789,6 @@ void MyLoop()
         break;
     }
 
-    // To send datas to the server, use the send function
-    comm.send("LED;R;1");
-
-    // It's possible to send with more then on line
-    comm.start();    // Open the buffer
-    comm.add("LED"); // Write String
-    comm.add(';');   // Add char
-    // comm.add(testInt); // Add from variable
-    comm.send(); // Send concatened variable
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -833,6 +825,7 @@ void Received()
 #endif
         game_state = 1; // go to next state
     }
+    
 }
 
 /// @brief When a message is send without server, the message will be received here. You can close the loop to test the module
