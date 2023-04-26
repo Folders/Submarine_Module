@@ -82,7 +82,6 @@ void ir_indicator()
     {
         state += ir_comm[i];
     }
-
     digitalWrite(LED, state > 0 ? HIGH : LOW); // turn on led if at least 1 IR reciever is recepting
 }
 
@@ -205,9 +204,14 @@ void MyLoop()
             Serial.print(";1");
 #endif
 
-            ir_comm[i] = 1;
-            ir_indicator();
             old_value[i] = 1;
+
+            ///@brief turn on led when IR is recieved in debug mode only
+            if (debug)
+            {
+                ir_comm[i] = 1;
+                ir_indicator();
+            }
         }
         else if (!value[i] && old_value[i]) // IR deconnection
         {
@@ -223,9 +227,14 @@ void MyLoop()
             Serial.print(";0");
 #endif
 
-            ir_comm[i] = 0;
-            ir_indicator();
             old_value[i] = 0;
+
+            
+            if (debug)
+            {
+                ir_comm[i] = 0;
+                ir_indicator();
+            }
         }
     }
 }
