@@ -20,6 +20,7 @@
 #include <Navigation.h>
 #include <Radar.h>
 #include <Torpedo.h>
+#include <Shield.h>
 
 ////////////////////////
 
