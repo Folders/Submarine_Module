@@ -24,9 +24,10 @@
 
 
 //#define TORPEDO
-#define MODEL
+//#define MODEL
 //#define NAVIGATION
 //#define RADAR
+#define SHIELD
 
 
 // Define module number if more then one is used
@@ -50,6 +51,8 @@
 #define TYPE ("EXT_" + std::to_string(NUMBER)).c_str()
 #elif defined(FIRE)
 #define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
+#elif defined(SHIELD)
+#define TYPE "SHD"
 #elif defined(TORPEDO)
 #define TYPE "TRP"
 #else

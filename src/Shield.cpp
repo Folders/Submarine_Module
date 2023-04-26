@@ -1,5 +1,5 @@
 #include <common.h>
-#ifdef MODEL
+#ifdef SHIELD
 
 #include <Arduino.h>
 
@@ -60,7 +60,7 @@ void MyLoop()
     comm.start();      // Open the buffer
     comm.add("LED");   // Write String
     comm.add(';');     // Add char
-    // comm.add(testInt); // Add from variable
+    //comm.add(testInt); // Add from variable
     comm.send();       // Send concatened variable
 }
 
