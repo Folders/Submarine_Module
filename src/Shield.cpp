@@ -725,9 +725,8 @@ void MySetup()
 void ResetModule()
 {
     countdown = 20; // countdown duration
-
     game_state = 0;  // games states
-    game_result = 0; // victory or fail
+    game_result = 0; // victory or fail 
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
