@@ -14,6 +14,7 @@
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
+#define BREACH
 //#define ELECTRICITY
 //#define ENERGY
 //#define ENGINE
@@ -27,7 +28,7 @@
 //#define MODEL
 //#define NAVIGATION
 //#define RADAR
-#define SHIELD
+//#define SHIELD
 
 
 // Define module number if more then one is used
@@ -37,6 +38,8 @@
 // Define module name for application
 #if defined(MODEL)
 #define TYPE "---"
+#elif defined(BREACH)
+#define TYPE ("BRE_" + std::to_string(NUMBER)).c_str()
 #elif defined(NAVIGATION)
 #define TYPE "NAV"
 #elif defined(RADAR)
