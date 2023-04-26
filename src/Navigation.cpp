@@ -9,11 +9,11 @@
 
 
 ////  Define global constantes      (ALWAYS IN MAJ)
-const int LIGHT_BLOCKEDLEFT = 16; 
-const int LIGHT_LEFT = 14; 
-const int LIGHT_CENTER = 12;  // pins for the leds
-const int LIGHT_RIGHT = 13; 
-const int LIGHT_BLOCKEDRIGHT = 15; 
+const int LIGHT_BLOCKEDLEFT = 16;   // D0
+const int LIGHT_LEFT = 14;          // D5
+const int LIGHT_CENTER = 12;        // D6
+const int LIGHT_RIGHT = 13;         // D7
+const int LIGHT_BLOCKEDRIGHT = 15;  // D8
 
 const int BTN_LEFT = 5; 
 const int BTN_RIGHT = 4; 

@@ -14,21 +14,17 @@
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-#define BREACH
+#define MODEL
+//#define BREACH
 //#define ELECTRICITY
 //#define ENERGY
 //#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
-
-//#define ELECTRICITY
-
-
-//#define TORPEDO
-//#define MODEL
 //#define NAVIGATION
 //#define RADAR
 //#define SHIELD
+//#define TORPEDO
 
 
 // Define module number if more then one is used
@@ -40,20 +36,20 @@
 #define TYPE "---"
 #elif defined(BREACH)
 #define TYPE ("BRE_" + std::to_string(NUMBER)).c_str()
-#elif defined(NAVIGATION)
-#define TYPE "NAV"
-#elif defined(RADAR)
-#define TYPE "RDR"
 #elif defined(ELECTRICITY)
 #define TYPE "ELC"
-#elif defined(ENGINE)
-#define TYPE "ENG"
 #elif defined(ENERGY)
 #define TYPE ("NRJ_" + std::to_string(NUMBER)).c_str()
+#elif defined(ENGINE)
+#define TYPE "ENG"
 #elif defined(EXTINGUISHER)
 #define TYPE ("EXT_" + std::to_string(NUMBER)).c_str()
 #elif defined(FIRE)
 #define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
+#elif defined(NAVIGATION)
+#define TYPE "NAV"
+#elif defined(RADAR)
+#define TYPE "RDR"
 #elif defined(SHIELD)
 #define TYPE "SHI"
 #elif defined(TORPEDO)
