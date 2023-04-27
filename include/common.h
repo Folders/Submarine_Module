@@ -14,7 +14,7 @@
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-#define MODEL
+//#define MODEL
 //#define BREACH
 //#define ELECTRICITY
 //#define ENERGY
@@ -23,6 +23,7 @@
 //#define FIRE 
 //#define NAVIGATION
 //#define RADAR
+#define REACTOR
 //#define SHIELD
 //#define TORPEDO
 
@@ -50,6 +51,8 @@
 #define TYPE "NAV"
 #elif defined(RADAR)
 #define TYPE "RDR"
+#elif defined(REACTOR)
+#define TYPE "REA"
 #elif defined(SHIELD)
 #define TYPE "SHI"
 #elif defined(TORPEDO)

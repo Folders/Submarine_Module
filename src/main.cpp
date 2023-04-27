@@ -20,6 +20,7 @@
 #include <Model.h>
 #include <Navigation.h>
 #include <Radar.h>
+#include <Reactor.h>
 #include <Shield.h>
 #include <Torpedo.h>
 
