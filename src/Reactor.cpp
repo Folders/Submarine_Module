@@ -204,6 +204,46 @@ int mapInt(int x, int in_min, int in_max, int out_min, int out_max) {
 }
 
 
+void drawLine(GFXcanvas1& canvas, int x0, int y0, int x1, int y1, uint16_t color) 
+{
+
+    // Calculer les différences entre les coordonnées des deux points
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+
+    // Déterminer dans quelle direction dessiner la ligne
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    // Initialiser les variables d'erreur
+    int err = dx - dy;
+    int e2;
+
+    // Boucle principale de dessin
+    while (true) {
+        // Dessiner le pixel courant
+        canvas.drawPixel(x0, y0, color);
+
+        // Vérifier si on est arrivé au point final
+        if (x0 == x1 && y0 == y1) {
+        break;
+        }
+
+        // Calculer l'erreur pour le prochain pixel
+        e2 = 2 * err;
+
+        // Corriger l'erreur si nécessaire et avancer d'un pixel
+        if (e2 > -dy) {
+        err -= dy;
+        x0 += sx;
+        }
+        if (e2 < dx) {
+        err += dx;
+        y0 += sy;
+        }
+    }
+}
+
 
 
 #define GRAPH_WIDTH 250     // Multiple of graph step
@@ -235,6 +275,24 @@ void Draw_Graph()
     int x0 = 0;
     int x1 = GRAPH_STEP - 1;
 
+    // Draw arrow if we have place
+    if (_graphInd < GRAPH_WIDTH - GRAPH_STEP)
+    {
+        // Draw triangle to the end position
+        drawLine(canvas, 0, y1, 3,y1+3, 0xFFFF);
+        drawLine(canvas, 0, y1, 3,y1-3, 0xFFFF);
+        drawLine(canvas, 3, y1-3, 3,y1+3, 0xFFFF);
+
+        // Put in next emplacement the triangle
+        tft.drawBitmap(GRAPH_LEFT + _graphInd + GRAPH_STEP, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), ILI9341_RED, 0x0000);
+        
+        // Undraw triangle to the end position
+        drawLine(canvas, 0, y1, 3,y1+3, 0x0000);
+        drawLine(canvas, 0, y1, 3,y1-3, 0x0000);
+        drawLine(canvas, 3, y1-3, 3,y1+3, 0x0000);
+    }
+
+
 #ifdef LOG
     Serial.printf("Line go from (%i;%i) to (%i;%i)\n", x0, y0, x1, y1);
 #endif
@@ -242,44 +300,10 @@ void Draw_Graph()
     ////////////////////// Normal line  -> STACK OVERFLOW
     //tft.drawLine(0, startY, GRAPH_STEP-1, endY, 0xFFFF);
     
+    // Draw the line to the new random position
+    drawLine(canvas, x0, y0, x1, y1, 0xFFFF);
 
-    // Calculer les différences entre les coordonnées des deux points
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
-
-    // Déterminer dans quelle direction dessiner la ligne
-    int sx = (x0 < x1) ? 1 : -1;
-    int sy = (y0 < y1) ? 1 : -1;
-
-    // Initialiser les variables d'erreur
-    int err = dx - dy;
-    int e2;
-
-    // Boucle principale de dessin
-    while (true) {
-        // Dessiner le pixel courant
-        canvas.drawPixel(x0, y0, 0xFFFF);
-
-        // Vérifier si on est arrivé au point final
-        if (x0 == x1 && y0 == y1) {
-        break;
-        }
-
-        // Calculer l'erreur pour le prochain pixel
-        e2 = 2 * err;
-
-        // Corriger l'erreur si nécessaire et avancer d'un pixel
-        if (e2 > -dy) {
-        err -= dy;
-        x0 += sx;
-        }
-        if (e2 < dx) {
-        err += dx;
-        y0 += sy;
-        }
-    }
-
-    // Draw new
+    // Draw de canvas
     tft.drawBitmap(GRAPH_LEFT + _graphInd, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), 0xFFFF, 0x0000);
     
     // Update graph position
@@ -307,11 +331,6 @@ void MySetup()
     tft.begin();        // start the screen
     tft.setRotation(1); // landscreen, connexion up
 
-    // Draw every thing on graphique
-    ResetModule();
-
-    // Run timmer to try to connect Unity server
-    Time_Update.attach(1, Draw_Update);
 
 }
 
@@ -332,9 +351,15 @@ void ResetModule()
     // Draw external rectangle of graphique
     tft.drawRect(GRAPH_LEFT-1, GRAPH_TOP-1, GRAPH_WIDTH+2, GRAPH_HEIGHT+2, ILI9341_WHITE);
     tft.drawRect(GRAPH_LEFT-2, GRAPH_TOP-2, GRAPH_WIDTH+4, GRAPH_HEIGHT+4, ILI9341_WHITE);
+    
     // And the graphique
-    Draw_Graph();
+    //Draw_Graph();
 
+#ifdef STANDALONE
+    // Trigger timer every second in standalone
+    if( !Time_Update.active() )
+        Time_Update.attach(1, Draw_Update);
+#endif
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -415,6 +440,12 @@ void Received()
             Draw_PowerGauge();
             Draw_TempGauge();
         }
+    }
+
+    // The get the received code, use the function GetCode()
+    if (comm.GetCode() == "NXT")
+    {
+        Draw_Graph();
     }
 }
 
