@@ -2,6 +2,7 @@
 #ifdef BREACH
 
 #include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
 
 //////// Add new include library
 // #include <Adafruit_NeoPixel.h>
@@ -11,28 +12,30 @@
 const int SOUND_DETECTOR[] = {5};
 const int NUMBEROFINPUTS = sizeof(SOUND_DETECTOR) / sizeof(SOUND_DETECTOR[0]);
 
-const int LED = 4;
+const int LED = 4; // indicator led for debug mode (turn on and off when a sound is hear)
 
 const unsigned long DELAY = 25; // soud detection delay
 
-const int NUM_BREACH = 1;
+// pixels band for water effect
+const int NUM_LEDS = 60;
+#define LED_PIN 13
+#define BRIGHTNESS 200
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRBW + NEO_KHZ800);
+
+const long INTERVAL = 1000; // Wait for 25 milliseconds between each update
 
 ////////  Define global variables
 
-int breach_lvl[NUM_BREACH];
+int breach_lvl[NUMBEROFINPUTS]; // breach lvl
 
 unsigned long lastDetectionTime = 0; // sound detection counter
 bool isLedOn = false;                // state LED
 
+unsigned long previousMillis = 0; // time marker for water leds
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-void my_function()
-{
-    // ...
-}
+///////////////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Detect sound
 void detect_sound()
@@ -66,6 +69,41 @@ void detect_sound()
     }
 }
 
+/// @brief Make a water effect on led's band depnding breach_lvl
+void water_effect()
+{
+
+    unsigned long currentMillis = millis(); // Get the current time in milliseconds
+    if (currentMillis - previousMillis >= INTERVAL)
+    {
+        previousMillis = currentMillis; // Update the previous time
+
+        int new_num_leds = ((NUM_LEDS / 100) * breach_lvl[0]);
+
+        ///@brief make wave effect in breachlvl function
+        for (int i = 0; i <= new_num_leds; i++)
+        {
+            int blueValue = random(40, 256); // Randomly change the value of blue for each pixel
+            int greenValue;
+            if (blueValue < 80)
+            {
+                greenValue = 0;
+            }
+            else
+            {
+                greenValue = random(0, 50); // Randomly change the value of green for each pixel
+            }
+
+            pixels.setPixelColor(i, pixels.Color(0, greenValue, blueValue, 0)); // Set the color of each pixel
+        }
+        ///@brief turn off leds depending breach lvl
+        for (int j = (new_num_leds + 1); j < NUM_LEDS; j++)
+        {
+            pixels.setPixelColor(j, pixels.Color(0, 0, 0, 0));
+        }
+        pixels.show(); // Update the display
+    }
+}
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,15 +115,20 @@ void MySetup()
 #ifdef LOG
     Serial.println("--- Model ---");
 #endif
+
     for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
         pinMode(SOUND_DETECTOR[i], INPUT);
     }
 
-    for (int i = 0; i < NUM_BREACH; i++)
+    for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
         breach_lvl[i] = 0;
     }
+
+    pixels.begin();
+    pixels.setBrightness(BRIGHTNESS);
+    pixels.show();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -93,7 +136,7 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
-    for (int i = 0; i < NUM_BREACH; i++)
+    for (int i = 0; i < NUMBEROFINPUTS; i++)
     {
         breach_lvl[i] = 0;
     }
@@ -105,6 +148,7 @@ void ResetModule()
 void MyLoop()
 {
     detect_sound();
+    water_effect();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
