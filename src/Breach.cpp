@@ -5,31 +5,32 @@
 #include <Adafruit_NeoPixel.h>
 
 //////// Add new include library
-// #include <Adafruit_NeoPixel.h>
+
 
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
 
-const int SOUND_DETECTOR[] = {5};
-const int NUMBEROFINPUTS = sizeof(SOUND_DETECTOR) / sizeof(SOUND_DETECTOR[0]);
+const int SOUND_DETECTOR = 5;
 
 const int LED = 4; // indicator led for debug mode (turn on and off when a sound is hear)
 
 const unsigned long DELAY = 25; // soud detection delay
 
 // pixels band for water effect
-const int NUM_LEDS = 60;
+const float NUM_LEDS = 60; // i'v put a float here for a dividing after that
 #define LED_PIN 13
 #define BRIGHTNESS 200
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, LED_PIN, NEO_GRBW + NEO_KHZ800);
 
-const long INTERVAL = 1000; // Wait for 25 milliseconds between each update
+
+const long INTERVAL = 1000; // small intervall for water effect
 
 ////////  Define global variables
 
-int breach_lvl[NUMBEROFINPUTS]; // breach lvl
+int breach_lvl = 0; // breach lvl
 
 unsigned long lastDetectionTime = 0; // sound detection counter
-bool isLedOn = false;                // state LED
+
+bool isLedOn = false; // state LED
 
 unsigned long previousMillis = 0; // time marker for water leds
 
@@ -40,68 +41,75 @@ unsigned long previousMillis = 0; // time marker for water leds
 /// @brief Detect sound
 void detect_sound()
 {
+    int output = digitalRead(SOUND_DETECTOR);
 
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
+    if (output == LOW) // sound has been detect
     {
-        int output = digitalRead(SOUND_DETECTOR[i]);
-        if (output == LOW) // sound has been detect
+        unsigned long now = millis();
+        if (now - lastDetectionTime >= DELAY) // the delay has passed
         {
-            unsigned long now = millis();
-            if (now - lastDetectionTime >= DELAY) // the delay has passed
-            {
-                lastDetectionTime = now;
-                comm.start("BRE;");
-                comm.add(i);
-                comm.send();
+            lastDetectionTime = now;
+            comm.send("BRE;1");
 
-                if (debug) // light on LED in DEBUG mode
-                {
-                    isLedOn = !isLedOn;
-                    digitalWrite(LED, isLedOn); // change led state
-                }
+            if (debug) // light on LED in DEBUG mode
+            {
+                isLedOn = !isLedOn;
+                digitalWrite(LED, isLedOn); // change led state
+            }
 
 #ifdef LOG
-                Serial.print("Son détecté dans le recepteur : ");
-                Serial.print(i);
+            Serial.print("Son détecté dans le recepteur");
 #endif
-            }
         }
     }
 }
 
+
 /// @brief Make a water effect on led's band depnding breach_lvl
 void water_effect()
 {
-
     unsigned long currentMillis = millis(); // Get the current time in milliseconds
     if (currentMillis - previousMillis >= INTERVAL)
     {
         previousMillis = currentMillis; // Update the previous time
 
-        int new_num_leds = ((NUM_LEDS / 100) * breach_lvl[0]);
+        int new_num_leds = ((NUM_LEDS / 100) * breach_lvl);     //divide leds with breach lvl
 
-        ///@brief make wave effect in breachlvl function
-        for (int i = 0; i <= new_num_leds; i++)
+        if (new_num_leds > 0)
         {
-            int blueValue = random(40, 256); // Randomly change the value of blue for each pixel
-            int greenValue;
-            if (blueValue < 80)
+            ///@brief make wave effect in breachlvl function
+            for (int i = 0; i <= new_num_leds; i++)
             {
-                greenValue = 0;
-            }
-            else
-            {
-                greenValue = random(0, 50); // Randomly change the value of green for each pixel
-            }
+                int blueValue = random(40, 256); // Randomly change the value of blue for each pixel
+                int greenValue;
+                if (blueValue < 80)
+                {
+                    greenValue = 0;
+                }
+                else
+                {
+                    greenValue = random(0, 50); // Randomly change the value of green for each pixel
+                }
 
-            pixels.setPixelColor(i, pixels.Color(0, greenValue, blueValue, 0)); // Set the color of each pixel
+                pixels.setPixelColor(i, pixels.Color(0, greenValue, blueValue, 0)); // Set the color of each pixel
+            }
         }
-        ///@brief turn off leds depending breach lvl
-        for (int j = (new_num_leds + 1); j < NUM_LEDS; j++)
+
+        /// @brief turn off the first led when new_num_leds is 0
+        if (new_num_leds == 0)
         {
-            pixels.setPixelColor(j, pixels.Color(0, 0, 0, 0));
+            pixels.clear();
+            pixels.show();
         }
-        pixels.show(); // Update the display
+        else
+        {
+            ///@brief turn off leds depending breach lvl
+            for (int j = (new_num_leds + 1); j < NUM_LEDS; j++)
+            {
+                pixels.setPixelColor(j, pixels.Color(0, 0, 0, 0));
+            }
+            pixels.show(); // Update the display
+        }
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,18 +124,12 @@ void MySetup()
     Serial.println("--- Model ---");
 #endif
 
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
-    {
-        pinMode(SOUND_DETECTOR[i], INPUT);
-    }
+    pinMode(SOUND_DETECTOR, INPUT);
 
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
-    {
-        breach_lvl[i] = 0;
-    }
-
+    breach_lvl = 0;
     pixels.begin();
     pixels.setBrightness(BRIGHTNESS);
+    pixels.clear();
     pixels.show();
 }
 
@@ -136,10 +138,8 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
-    {
-        breach_lvl[i] = 0;
-    }
+
+        breach_lvl = 0;
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -147,7 +147,7 @@ void ResetModule()
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    detect_sound();
+    detect_sound(); 
     water_effect();
 }
 
@@ -177,8 +177,7 @@ void Received()
     if (comm.GetCode() == "BRE")
     {
         int i = comm.GetParameter(1).toInt();
-        int y = comm.GetParameter(2).toInt();
-        breach_lvl[i] = y;
+        breach_lvl = i;
     }
 }
 
