@@ -130,6 +130,7 @@ bool WALLS_H[6][6][6] =
 #define TFT_CLK 17  // D5
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO); // screen
+GFXcanvas16 canvas(58, 38); 
 
 /// buttons
 
@@ -165,6 +166,16 @@ int i_countdown = countdown;
 
 // position animation
 
+void displayCountdown() {
+    canvas.fillScreen(ILI9341_BLACK); 
+    canvas.setCursor(5, 7);
+    canvas.setTextColor(ILI9341_RED);
+    canvas.setTextSize(4);
+    canvas.print(i_countdown);
+    canvas.getBuffer(); // fill the buffer
+    tft.drawRGBBitmap(261, 201, (uint16_t*)canvas.getBuffer(), canvas.width(), canvas.height()); // display the buffer
+}
+
 /// @brief make a clign effect for squares
 void _Clign2()
 {
@@ -182,26 +193,16 @@ void _Clign2()
     }
 }
 
-/// @brief fill countdown with black screen
-void clean_countdown()
-{
-    if (i_clean != i_countdown % 2)
-    {
-        tft.fillRect(261, 201, 58, 38, ILI9341_BLACK);
-        i_clean = !i_clean;
-    }
-}
+
 
 /// @brief  decrease countdown
 void Countdown()
 {
-
     i_countdown--;
     if (i_countdown < 0)
     {
         i_countdown = 0; // stop the countdown at 0
     }
-    clean_countdown();
 }
 
 /// @brief fill position in black
@@ -210,10 +211,10 @@ void clean_position()
     tft.fillRect(((positionX * 30) + 21), ((positionY * 30) + 51), 18, 18, ILI9341_BLACK);
 }
 
-Ticker _Clign(_Clign2, 500);
-Ticker _Countdown(Countdown, 1000);
-Ticker _Fail(un_Fail, 5000);
-Ticker _Victory(un_Victory, 5000);
+Ticker _Clign;
+Ticker _Countdown;
+Ticker _Fail;
+Ticker _Victory;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,17 +380,11 @@ void draw_position()
 {
     tft.fillRect((positionX_Victoire * 30) + OFFSET_X + 1, (positionY_Victoire * 30) + OFFSET_Y + 1, 18, 18, ILI9341_GREEN); // fill the victory square in green
     tft.fillRect((positionX * 30) + OFFSET_X + 1, (positionY * 30) + OFFSET_Y + 1, 18, 18, color);                           // fill the position square in orange flashing black
-    clean_countdown();                                                                                                       // draw the countdown on the map
-    tft.setCursor(266, 206);
-    tft.setTextColor(ILI9341_RED);
-    tft.setTextSize(4);
-    tft.print(i_countdown);
 }
 
 /// @brief write "perdu" on red sreen
 void failure()
 {
-
     tft.setCursor(45, 100);
     tft.setTextColor(ILI9341_BLACK);
     tft.setTextSize(5);
@@ -592,8 +587,8 @@ void game_setup()
   // for testing
   torpedo_direction = random(0, 5); // randomise the torpeedo direction
 */
-    _Clign.start();     // start the ticker for flashing the position
-    _Countdown.start(); // start the ticker for the countdown
+    _Clign.attach(0.5, _Clign2);     // start the ticker for flashing the position
+    _Countdown.attach(1, Countdown); // start the ticker for the countdown
 
 #ifdef LOG
     Serial.print("Votre position :");
@@ -641,7 +636,7 @@ void check_game_status()
     if (game_result == 1)
     {
         comm.send("SHI;0"); // send information to server
-        _Countdown.stop();
+        _Countdown.detach();
         tft.fillScreen(ILI9341_BLACK);
         tft.fillScreen(ILI9341_RED);
 
@@ -651,14 +646,14 @@ void check_game_status()
 
         game_state = 3; // waiting and make nothing
         failure();      // write "Echec :( " on the screen
-        _Fail.start();  // reboot
+        _Fail.attach(5, un_Fail);  // reboot
     }
 
     // victory
     if (game_result == 2)
     {
         comm.send("SHI;1"); // send information to server
-        _Countdown.stop();
+        _Countdown.detach();
         tft.fillScreen(ILI9341_BLACK);
         tft.fillScreen(ILI9341_GREEN);
 
@@ -668,7 +663,7 @@ void check_game_status()
 
         game_state = 3;   // waiting and make nothing
         victory();        // write "Bravo" on the screen
-        _Victory.start(); // reboot
+        _Victory.attach(5, un_Victory); // reboot
     }
 }
 
@@ -676,14 +671,14 @@ void check_game_status()
 void un_Fail()
 {
     game_state = 4; // reset the game
-    _Fail.stop();
+    _Fail.detach();
 }
 
 /// @brief stop victory screen
 void un_Victory()
 {
     game_state = 4; // reset the game
-    _Victory.stop();
+    _Victory.detach();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -713,8 +708,8 @@ void MySetup()
     randomSeed(analogRead(1)); // generate the seed
 
     // start animations tickers
-    _Clign.start();
-    _Countdown.start();
+   _Clign.attach(0.5, _Clign2);     // start the ticker for flashing the position
+   
 
     draw_map();
 }
@@ -735,11 +730,7 @@ void ResetModule()
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    // update tickers
-    _Clign.update();
-    _Countdown.update();
-    _Fail.update();
-    _Victory.update();
+
 
     /// @brief make things depending game status
     switch (game_state)
@@ -768,12 +759,15 @@ void MyLoop()
         break;
 
     case 2: // gaming state
-
+    #ifdef LOG
+        Serial.println("Game State 2");
+#endif
         read_buttons();      // read buttons
         check_game_status(); // check if it's victory or fail
         if (game_result < 1)
         {
             draw_position(); // draw new position on map
+            displayCountdown(); // draw countdown
         }
         break;
 
@@ -782,22 +776,13 @@ void MyLoop()
         break;
 
     case 4:
-        _Countdown.start();                          // restart countdown refresh
+        _Countdown.attach(1, Countdown);                          // restart countdown refresh
         tft.fillRect(0, 0, 320, 240, ILI9341_BLACK); // clean the screen
         draw_map();                                  // draw initial map
         game_state = 0;                              // reboot
         break;
     }
 
-    // To send datas to the server, use the send function
-    comm.send("LED;R;1");
-
-    // It's possible to send with more then on line
-    comm.start();    // Open the buffer
-    comm.add("LED"); // Write String
-    comm.add(';');   // Add char
-    // comm.add(testInt); // Add from variable
-    comm.send(); // Send concatened variable
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
