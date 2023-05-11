@@ -8,6 +8,56 @@
 #include <Adafruit_ILI9341.h>
 #include <Ticker.h>
 
+/*                 -----  Screen layout  -----
+
+
+    0 ->                                                       320 (LEFT)
+    |   __________________________________________________________
+    V   |  ________________________________________          __   |
+        |  |                                       |     |   | |  |
+        |  |                                       |     |   | |  |
+        |  |                                       |     |   | |  |
+        |  |              (1)                      |     |   | |  |
+        |  |             GRAPH                     |  (4)>   | |  |
+        |  |                                       |     |   | |  |
+        |  |                                       |     |   |2|  |
+        |  |                                       |     |   | |  |
+        |  |                                       |     |   | |  |
+        |  |_______________________________________|     |   | |  |
+        |                                                |   | |  |
+        |                      (5)                       |   | |  |
+        |  ---------------------V--------------------    |   |_|  |
+        |  __________________________________________             |
+        |  |_________________________________________|(3)         |
+   240  |_________________________________________________________|
+  (TOP)
+
+*/
+
+// 1. Graph position and size
+#define GRAPH_WIDTH 250         // Multiple of graph step
+#define GRAPH_HEIGHT 200
+#define GRAPH_LEFT 2            // Min = 2
+#define GRAPH_TOP 2             // Min = 2
+#define GRAPH_STEP 5            // Width of graph update
+
+// 2. Power gauge
+#define GAUGE_POWER_WIDTH 21
+#define GAUGE_POWER_HEIGHT 181
+#define GAUGE_POWER_LEFT 290
+#define GAUGE_POWER_TOP 10 
+
+// 3. Temperature gauge
+#define GAUGE_TEMP_WIDTH 250
+#define GAUGE_TEMP_HEIGHT 21
+#define GAUGE_TEMP_LEFT 10
+#define GAUGE_TEMP_TOP 210 
+
+
+
+
+
+
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
 // const int TEST_IN = 10;
 // const int TEST_OUT = 11;
@@ -176,18 +226,20 @@ void DrawGauge(int16_t width, int16_t height, int16_t left, int16_t top, float f
     tft.drawRGBBitmap(left, top, canvas.getBuffer(), canvas.width(), canvas.height());
 }
 
+
 /// @brief Draw the power gauge. Size: 21x181 - Pos: 290;10
 void Draw_PowerGauge()
 {
     // Draw power gauge
-    DrawGauge(21, 181, 290, 10, _ConsoPower, _Tol, ILI9341_MAROON, ILI9341_YELLOW);
+    DrawGauge(GAUGE_POWER_WIDTH, GAUGE_POWER_HEIGHT, GAUGE_POWER_LEFT, GAUGE_POWER_TOP, _ConsoPower, _Tol, ILI9341_MAROON, ILI9341_YELLOW);
 }
+
 
 /// @brief Draw the temperature gauge. Size: 250x21 - Pos: 10;210
 void Draw_TempGauge()
 {
     // Test horizontal power gauge
-    DrawGauge(250, 21, 10, 210, _TempNeeded, _Tol, ILI9341_BLUE, ILI9341_RED);
+    DrawGauge(GAUGE_TEMP_WIDTH, GAUGE_TEMP_HEIGHT, GAUGE_TEMP_LEFT, GAUGE_TEMP_TOP, _TempNeeded, _Tol, ILI9341_BLUE, ILI9341_RED);
 }
 
 int mapInt(int x, int in_min, int in_max, int out_min, int out_max)
@@ -195,9 +247,15 @@ int mapInt(int x, int in_min, int in_max, int out_min, int out_max)
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+/// @brief Create draw line function for a canvas. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
+/// @param canvas 
+/// @param x0 
+/// @param y0 
+/// @param x1 
+/// @param y1 
+/// @param color 
 void drawLine(GFXcanvas1 &canvas, int x0, int y0, int x1, int y1, uint16_t color)
-{
-
+{ 
     // Calculer les différences entre les coordonnées des deux points
     int dx = abs(x1 - x0);
     int dy = abs(y1 - y0);
@@ -239,11 +297,6 @@ void drawLine(GFXcanvas1 &canvas, int x0, int y0, int x1, int y1, uint16_t color
     }
 }
 
-#define GRAPH_WIDTH 250  // Multiple of graph step
-#define GRAPH_HEIGHT 200 //
-#define GRAPH_TOP 2      // Min = 2
-#define GRAPH_LEFT 2     // Min = 2
-#define GRAPH_STEP 5
 
 int _graphInd;
 int _graphMax;
