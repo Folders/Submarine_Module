@@ -14,7 +14,7 @@
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-//#define MODEL
+#define MODEL
 //#define BREACH
 //#define ELECTRICITY
 //#define ENERGY
@@ -23,7 +23,7 @@
 //#define FIRE 
 //#define NAVIGATION
 //#define RADAR
-#define SHIELD
+//#define SHIELD
 //#define TORPEDO
 
 
