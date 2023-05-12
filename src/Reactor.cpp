@@ -18,7 +18,7 @@
         |  |                                       |     |   | |  |
         |  |                                       |     |   | |  |
         |  |              (1)                      |     |   | |  |
-        |  |             GRAPH                     |  (4)>   | |  |
+        |  |             GRAPH                     |  (4)►   | |  |
         |  |                                       |     |   | |  |
         |  |                                       |     |   |2|  |
         |  |                                       |     |   | |  |
@@ -26,7 +26,7 @@
         |  |_______________________________________|     |   | |  |
         |                                                |   | |  |
         |                      (5)                       |   | |  |
-        |  ---------------------V--------------------    |   |_|  |
+        |  ---------------------▼--------------------    |   |_|  |
         |  __________________________________________             |
         |  |_________________________________________|(3)         |
    240  |_________________________________________________________|
@@ -227,7 +227,7 @@ void DrawGauge(int16_t width, int16_t height, int16_t left, int16_t top, float f
 }
 
 
-/// @brief Draw the power gauge. Size: 21x181 - Pos: 290;10
+/// @brief Draw the power gauge.
 void Draw_PowerGauge()
 {
     // Draw power gauge
@@ -235,12 +235,13 @@ void Draw_PowerGauge()
 }
 
 
-/// @brief Draw the temperature gauge. Size: 250x21 - Pos: 10;210
+/// @brief Draw the temperature gauge.
 void Draw_TempGauge()
 {
     // Test horizontal power gauge
     DrawGauge(GAUGE_TEMP_WIDTH, GAUGE_TEMP_HEIGHT, GAUGE_TEMP_LEFT, GAUGE_TEMP_TOP, _TempNeeded, _Tol, ILI9341_BLUE, ILI9341_RED);
 }
+
 
 int mapInt(int x, int in_min, int in_max, int out_min, int out_max)
 {
