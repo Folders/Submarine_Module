@@ -14,10 +14,10 @@
 #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-#define MODEL
+//#define MODEL
 //#define BREACH
 //#define ELECTRICITY
-//#define ENERGY
+#define ENERGY
 //#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 

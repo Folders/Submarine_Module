@@ -6,26 +6,23 @@
 //////// Add new include library
 #include <Adafruit_NeoPixel.h>
 #include <MFRC522.h>
-#include <SPI.h>
-#include <Ticker.h>
 
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // define NEOPIXELS settings
-#define NEOPIXELS
-#define PIN 5
+#define NEOPIXEL_OUT 5
 #define NUMPIXELS 3 // insert the total of pixels
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL_OUT, NEO_GRB + NEO_KHZ800);
 const int BRIGHTNESS = 255;
 
 // RFID settings
-#define SS_PIN 15
 #define RST_PIN 0
-MFRC522 rfid(SS_PIN, RST_PIN);
+MFRC522 rfid(RST_PIN);
 
 ////////  Define global variables
-Ticker _Display_Led_Percent;
-int percent = 0;
+int _percent = 0;
+int _percentBackup = -1;
 bool locked = false;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +46,7 @@ void array_to_string(byte array[], unsigned int len, char buffer[])
 }
 
 /// @brief convert the UID scanned into a string. First in array, then string
-void convert_UID() // convert the UID into String
+void Read_UID() // convert the UID into String
 {
     char UID_str[32] = "";
     array_to_string(rfid.uid.uidByte, 4, UID_str);
@@ -98,12 +95,32 @@ bool PICC_IsAnyCardPresent()
     return (result == MFRC522::STATUS_OK || result == MFRC522::STATUS_COLLISION);
 } // End PICC_IsAnyCardPresent()
 
-/// @brief display the percent with colors. Green = full, red = empty
-void percent_leddisplay()
+/// @brief Set new percent of energy. Display the percent with colors. Green = full, red = empty
+/// @param SetValue New percent value [0..100]
+void Percent_Display(int SetValue)
 {
-    float r = (255 - (255 * percent / 100));
-    float g = (255 * percent / 100);
+    
+    // Limit input value
+    if (SetValue > 100)
+        _percent = 100;
+    else if (SetValue < 0)
+        _percent = 0;
+    else
+        _percent = SetValue;
+
+    // Escape if no update
+    if (_percent == _percentBackup)
+        return;
+
+    // Backup the value
+    _percentBackup = _percent;
+
+    // Convert % in grandiant from red to green
+    float r = (255 - (255 * _percent / 100));
+    float g = (255 * _percent / 100);
     int b = 0;
+
+    // And write new value to the pixel
     for (int i = 0; i < NUMPIXELS; i++)
     {
         pixels.setPixelColor(i, r, g, b);
@@ -126,7 +143,7 @@ void MySetup()
     // Neopixels setup
     pixels.begin();
     pixels.setBrightness(BRIGHTNESS);
-    _Display_Led_Percent.attach(0.5, percent_leddisplay); // start the ticker who's display the percent with leds
+
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -134,7 +151,9 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
-    percent = 0;
+    // Write color
+    Percent_Display(0);
+
     locked = false;
     rfid.uid.size = 0;
 }
@@ -144,8 +163,8 @@ void ResetModule()
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-
-    bool cardPresent = PICC_IsAnyCardPresent(); // read if there is a RFID connection
+    // read if there is a RFID connection
+    bool cardPresent = PICC_IsAnyCardPresent(); 
 
     // Reset the loop if no card was locked an no card is present.
     // This saves the select process when no card is found.
@@ -162,26 +181,27 @@ void MyLoop()
 
     MFRC522::StatusCode result = rfid.PICC_Select(&rfid.uid, 8 * rfid.uid.size);
 
+    //////////// Actions on card detection //////////////////
     if (!locked && result == MFRC522::STATUS_OK)
     {
         locked = true;
-
-        //////////// Actions on card detection //////////////////
-
+        
 #ifdef LOG
         Serial.print(F("locked! NUID tag: "));
         printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
         Serial.println();
 #endif
-
-        convert_UID(); // convert UID into STRING and send it to the server
+        // Read the current UID and send it to server
+        Read_UID();
     }
+    
+    
+    ///////////// Action on card removal ////////////
     else if (locked && result != MFRC522::STATUS_OK)
     {
         locked = false;
         rfid.uid.size = 0;
 
-        ///////////// Action on card removal ////////////
        
         comm.send("NFC;N"); //
 
@@ -207,37 +227,18 @@ void MyLoop()
 /// @brief Call when a message is received from server (or serial)
 void Received()
 {
-
-    // If you want debug the received string, you can write this commande:
-    comm.Info_Received();
-
-    // The get the received code, use the function GetCode()
-    if (comm.GetCode() == "TST")
-    {
-        // If you need to check the number of parameter available, use the function comm.GetSize()
-        Serial.println("Number of received parameter :");
-        Serial.println(comm.GetSize());
-
-        // If you want to read one parameter, you can use the function comm.GetParameter(x)
-        Serial.println("Value of parameter 1 :");
-        Serial.println(comm.GetParameter(1));
-    }
-
+    // Set new battery percent
     if (comm.GetCode() == "NRJ")
     {
-        percent = comm.GetParameter(1).toInt();
+        // Write color
+        Percent_Display(comm.GetParameter(1).toInt());
     }
 }
 
 /// @brief When a message is send without server, the message will be received here. You can close the loop to test the module
 void ServerSimulation()
 {
-    // Update navigation status
-    if (comm.GetCode() == "NVC")
-    {
-        // DO something
-        Serial.println("WOOW, j'ai reçu un NVC en local !");
-    }
+    return;
 }
 
 #endif
