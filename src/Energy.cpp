@@ -227,11 +227,39 @@ void MyLoop()
 /// @brief Call when a message is received from server (or serial)
 void Received()
 {
-    // Set new battery percent
+    // Set new energy percent
     if (comm.GetCode() == "NRJ")
     {
         // Write color
         Percent_Display(comm.GetParameter(1).toInt());
+    }
+
+    // Put ESP in sleep mode
+    if (comm.GetCode() == "SLP")
+    {
+        // Turn off every led
+        for (int i = 0; i < NUMPIXELS; i++)
+        {
+            pixels.setPixelColor(i, 0, 0, 0);
+        }
+        pixels.show();
+
+        // Write color
+        ESP.deepSleep(0);
+    }
+    
+    // Read the battery level
+    if (comm.GetCode() == "BTY")
+    {
+        // Read analog input
+        float bttr = 0.0;
+
+        // Convert input in %
+
+        // Send to server the battery level
+        comm.start("BTY;");
+        comm.add(bttr);
+        comm.send();
     }
 }
 
