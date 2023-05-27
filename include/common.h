@@ -17,8 +17,8 @@
 //#define MODEL
 //#define BREACH
 //#define ELECTRICITY
-#define ENERGY
-//#define ENGINE
+//define ENERGY
+#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
 //#define NAVIGATION
