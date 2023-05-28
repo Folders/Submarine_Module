@@ -3,6 +3,15 @@
 
 #include <Arduino.h>
 
+
+#ifdef ESP8266
+#error "Only use an ESP32"
+// 1. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
+// 2. We need two analog input
+#endif
+
+
+
 //////// Add new include library
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
@@ -55,6 +64,10 @@
 
 
 
+/* ESP8266 Analog Pin ADC0 = A0 */
+#define ANALOG_POWER 16 
+#define ANALOG_TEMP 18 
+
 
 
 
@@ -104,6 +117,58 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_R
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
 #pragma region "User function"
+
+/*
+/// @brief Create draw line function for a canvas. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
+/// @param canvas Target convas to write the line
+/// @param x0 Start position of line on X axis
+/// @param y0 Start position of line on Y axis 
+/// @param x1 End position of line on X axis
+/// @param y1 End position of line on Y axis
+/// @param color Color of the line
+void drawLine(GFXcanvas1 &canvas, int x0, int y0, int x1, int y1, uint16_t color)
+{ 
+    // Calculer les différences entre les coordonnées des deux points
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
+
+    // Déterminer dans quelle direction dessiner la ligne
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    // Initialiser les variables d'erreur
+    int err = dx - dy;
+    int e2;
+
+    // Boucle principale de dessin
+    while (true)
+    {
+        // Dessiner le pixel courant
+        canvas.drawPixel(x0, y0, color);
+
+        // Vérifier si on est arrivé au point final
+        if (x0 == x1 && y0 == y1)
+        {
+            break;
+        }
+
+        // Calculer l'erreur pour le prochain pixel
+        e2 = 2 * err;
+
+        // Corriger l'erreur si nécessaire et avancer d'un pixel
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+*/
 
 /// @brief Draw a standard gauge componant
 /// @param width Width of the gauge [pix]
@@ -243,66 +308,12 @@ void Draw_TempGauge()
 }
 
 
-int mapInt(int x, int in_min, int in_max, int out_min, int out_max)
-{
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-/// @brief Create draw line function for a canvas. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
-/// @param canvas 
-/// @param x0 
-/// @param y0 
-/// @param x1 
-/// @param y1 
-/// @param color 
-void drawLine(GFXcanvas1 &canvas, int x0, int y0, int x1, int y1, uint16_t color)
-{ 
-    // Calculer les différences entre les coordonnées des deux points
-    int dx = abs(x1 - x0);
-    int dy = abs(y1 - y0);
-
-    // Déterminer dans quelle direction dessiner la ligne
-    int sx = (x0 < x1) ? 1 : -1;
-    int sy = (y0 < y1) ? 1 : -1;
-
-    // Initialiser les variables d'erreur
-    int err = dx - dy;
-    int e2;
-
-    // Boucle principale de dessin
-    while (true)
-    {
-        // Dessiner le pixel courant
-        canvas.drawPixel(x0, y0, color);
-
-        // Vérifier si on est arrivé au point final
-        if (x0 == x1 && y0 == y1)
-        {
-            break;
-        }
-
-        // Calculer l'erreur pour le prochain pixel
-        e2 = 2 * err;
-
-        // Corriger l'erreur si nécessaire et avancer d'un pixel
-        if (e2 > -dy)
-        {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dx)
-        {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
-
 
 int _graphInd;
 int _graphMax;
 int _graphOld = 0;
 
+/// @brief Draw a new random line in the next segment of graph
 void Draw_Graph()
 {
     // Canvas of power gauge
@@ -317,8 +328,8 @@ void Draw_Graph()
 #endif
 
     // Define trace point
-    int y0 = mapInt(_graphOld, 0, 100, GRAPH_HEIGHT, 0);
-    int y1 = mapInt(val, 0, 100, GRAPH_HEIGHT, 0);
+    int y0 = map(_graphOld, 0, 100, GRAPH_HEIGHT, 0);
+    int y1 = map(val, 0, 100, GRAPH_HEIGHT, 0);
     int x0 = 0;
     int x1 = GRAPH_STEP - 1;
 
@@ -326,17 +337,23 @@ void Draw_Graph()
     if (_graphInd < GRAPH_WIDTH - GRAPH_STEP)
     {
         // Draw triangle to the end position
-        drawLine(canvas, 0, y1, 3, y1 + 3, 0xFFFF);
-        drawLine(canvas, 0, y1, 3, y1 - 3, 0xFFFF);
-        drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0xFFFF);
+        canvas.drawLine(0, y1, 3, y1 + 3, 0xFFFF);
+        canvas.drawLine(0, y1, 3, y1 - 3, 0xFFFF);
+        canvas.drawLine(3, y1 - 3, 3, y1 + 3, 0xFFFF);
+        //drawLine(canvas, 0, y1, 3, y1 + 3, 0xFFFF);
+        //drawLine(canvas, 0, y1, 3, y1 - 3, 0xFFFF);
+        //drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0xFFFF);
 
         // Put in next emplacement the triangle
         tft.drawBitmap(GRAPH_LEFT + _graphInd + GRAPH_STEP, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), ILI9341_RED, 0x0000);
 
         // Undraw triangle to the end position
-        drawLine(canvas, 0, y1, 3, y1 + 3, 0x0000);
-        drawLine(canvas, 0, y1, 3, y1 - 3, 0x0000);
-        drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0x0000);
+        canvas.drawLine(0, y1, 3, y1 + 3, 0x0000);
+        canvas.drawLine(0, y1, 3, y1 - 3, 0x0000);
+        canvas.drawLine(3, y1 - 3, 3, y1 + 3, 0x0000);
+        //drawLine(canvas, 0, y1, 3, y1 + 3, 0x0000);
+        //drawLine(canvas, 0, y1, 3, y1 - 3, 0x0000);
+        //drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0x0000);
     }
 
 #ifdef LOG
@@ -347,7 +364,8 @@ void Draw_Graph()
     // tft.drawLine(0, startY, GRAPH_STEP-1, endY, 0xFFFF);
 
     // Draw the line to the new random position
-    drawLine(canvas, x0, y0, x1, y1, 0xFFFF);
+    canvas.drawLine(x0, y0, x1, y1, 0xFFFF);
+    //drawLine(canvas, x0, y0, x1, y1, 0xFFFF);
 
     // Draw de canvas
     tft.drawBitmap(GRAPH_LEFT + _graphInd, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), 0xFFFF, 0x0000);
@@ -361,6 +379,7 @@ void Draw_Graph()
         _graphInd = 0;
 }
 
+/// @brief Call to draw the new graph segment
 void Draw_Update()
 {
     Draw_Graph();
@@ -379,6 +398,9 @@ void MySetup()
     // Start TFT
     tft.begin();        // start the screen
     tft.setRotation(1); // landscreen, connexion up
+
+
+
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -411,9 +433,126 @@ void ResetModule()
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 
+/// @brief Analog management
+class Analog
+{
+private:
+    uint8_t _pin;
+    uint16_t _in;
+
+    //////////////////////////  Average datas  //////////////////////////
+    bool _avgUsed = false;
+    float _avgSum;
+    float _avgNb = 0;
+    float _avgOut = 0;
+
+    /// @brief Define average function
+    /// @param average Average number
+    void _SetAvg(uint8_t average)
+    {
+        // Init avg info
+        _avgUsed = true;
+        _avgNb = static_cast<float>(average);
+    }
+
+    //////////////////////////  Mapping datas  //////////////////////////
+    bool _mapUsed = false;
+    uint16_t _mapInMin = 0;
+    uint16_t _mapInMax = 0;
+    uint16_t _mapOutMin = 0;
+    uint16_t _mapOutMax = 0;
+
+    /// @brief Define map function
+    /// @param in_Min 
+    /// @param in_Max 
+    /// @param out_Min 
+    /// @param out_Max 
+    void _SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max)
+    {
+        // Init avg info
+        _mapUsed = true;
+        _mapInMin = in_Min;
+        _mapInMax = in_Max;
+        _mapOutMin = out_Min;
+        _mapOutMax = out_Max;
+    }
+
+    //////////////////////////  Update datas  //////////////////////////
+    bool _updateUsed = false;
+    /// @brief Function to call when a text is received
+    void (*ReceiveFuncPtr)();
+    
+public:
+
+    /// @brief Read analog value from an input
+    /// @return 
+    uint16_t Read()
+    {
+        // Get the analog value
+        _in = analogRead(_pin);
+
+        // Make an averge of the value
+        if (_avgUsed)
+        {
+            // Make an average
+            _avgSum += static_cast<float>(_in);
+            _avgSum -= _avgOut;
+            _avgOut = _avgSum / _avgNb;
+
+            // Update the value
+            _in = static_cast<uint16_t>(_avgOut);
+        }
+
+        // Map the value to an ouput if needed
+        if (_mapUsed)
+        {
+            _in = map(_in, _mapInMin, _mapInMax, _mapOutMin, _mapOutMax);
+        }
+
+        // Check if an update is needed
+
+        return _in;
+    }
+
+    Analog(uint8_t pin)
+    {
+        _pin = pin;
+    }
+
+    Analog(uint8_t pin, uint8_t average)
+    {
+        _pin = pin;
+
+        // Init avg info
+        _SetAvg(average);
+    }
+    
+    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max )
+    {
+        _pin = pin;
+
+        // Init avg info
+        _SetAvg(average);
+
+        // Init map
+        _SetMap(in_Min, in_Max, out_Min, out_Max);
+    }
+
+};
+
+
+Analog Power(ANALOG_POWER);
+Analog Temp(ANALOG_POWER, 50, 0, 8191, 0,100);
+
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
+    int ValPower = Power.Read(); //analogRead(ANALOG_POWER);
+    int ValTemp = Temp.Read(); //analogRead(ANALOG_TEMP);
+    
+#ifdef LOG
+    Serial.printf("Power is %4i and temperature is %4i.\n", ValPower, ValTemp);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@
 //#define FIRE 
 //#define NAVIGATION
 //#define RADAR
-//#define REACTOR
+#define REACTOR
 //#define SHIELD
 //#define TORPEDO
 

@@ -20,6 +20,7 @@ int CharToInt(char *p)
      return k;
 }
 
+
 /// @brief Convert chars to float
 /// @param p Text to convert
 /// @return Value in float
