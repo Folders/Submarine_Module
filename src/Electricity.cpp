@@ -11,16 +11,15 @@
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // Set inputs
-// const int INPUTPINS[] = {15, 14, 12, 13, 4, 5};      // if there is 6 interrupts
-const int INPUTPINS[] = {15, 14, 12, 13}; // if there is 4 interrupts
-const int NUMBEROFINPUTS = sizeof(INPUTPINS) / sizeof(INPUTPINS[0]);
+const int INPUTPINS[] = {2, 14, 12, 13, 4, 5}; // if there is 6 interrupts
+const int NB_INPUT = sizeof(INPUTPINS) / sizeof(int);
 
-Bounce buttons[NUMBEROFINPUTS]; // using Bounce2 librairy
+Bounce buttons[NB_INPUT]; // using Bounce2 librairy
 
 // Neopixels setup
 #define PIN 0
-#define NUMPIXELS 6 // insert the total of pixels
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
+#define NB_PIXELS NB_INPUT + 1 // insert the total of pixels
+Adafruit_NeoPixel pixels(NB_PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 /// @brief number of clign for succes or fail
 const int NUM_CLIGN = 4;
@@ -34,12 +33,11 @@ Ticker _Succes;
 /// @brief ticker for fail
 Ticker _Fail;
 
-/// @brief If there is a breakdown or not
-bool breackdown;
+/// @brief Electricity is working
+bool _working;
 
 bool clign_succes;
 bool clign_fail;
-
 
 int victory_counter;
 int fail_counter;
@@ -48,33 +46,71 @@ int fail_counter;
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Update working status
+/// @param status New status
+void SetWorking(bool status)
+{
+    // Check if update
+    if (_working != status)
+    {
+        // Save value
+        _working = status;
+
+#ifdef LOG
+        if (_working)
+            Serial.println("Electricity status: Working");
+        else
+            Serial.println("Electricity status: Shutdown");
+#endif
+
+        // Update status led
+        if (_working)
+            pixels.setPixelColor(NB_INPUT, pixels.Color(0, 255, 0));
+        else
+            pixels.setPixelColor(NB_INPUT, pixels.Color(255, 0, 0));
+            
+        // Update pixels
+        pixels.show();
+    }
+}
+
+/// @brief Update working status
+/// @param status New status
+void SetWorking(String status)
+{
+    if (status == "1")
+        SetWorking(true);
+    else if (status == "0")
+        SetWorking(false);
+}
+
 /// @brief Read interrupts and send to server if pressed
 void interrupts_read()
 {
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
+    for (int i = 0; i < NB_INPUT; i++)
     {
-        
+
         buttons[i].update();
 
         if (buttons[i].fell()) // inetrrupt has been pressed
         {
             // if there is a breakdown or debug, send button state
-            if (breackdown || debug)
+            if (!_working || debug)
             {
                 // send information to server
                 comm.start("BTN;");
-                comm.add(i);
+                comm.add(i + 1);
                 comm.send(";1");
             }
 
 #ifdef LOG
             Serial.print("Boutton ");
-            Serial.print(i);
+            Serial.print(i + 1);
             Serial.print(" : Appuyé");
             Serial.println();
 #endif
 
-            if (breackdown == true) // turn green the matching led if there is a breakdown
+            if (!_working) // turn green the matching led if there is a breakdown
             {
                 pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
                 pixels.show();
@@ -88,7 +124,7 @@ void interrupts_read()
             {
                 // send information to server
                 comm.start("BTN;");
-                comm.add(i);
+                comm.add(i + 1);
                 comm.send(";0");
             }
         }
@@ -102,7 +138,7 @@ void victory()
 
     victory_counter++;
 
-    for (int i = 0; i < NUMPIXELS; i++)
+    for (int i = 0; i < NB_INPUT; i++)
     {
         if (clign_succes == true)
         {
@@ -119,7 +155,7 @@ void victory()
 
     if (victory_counter == (NUM_CLIGN * 2)) // the last clign effect
     {
-        for (int i = 0; i < NUMPIXELS; i++)
+        for (int i = 0; i < NB_INPUT; i++)
         {
             pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
             pixels.show();
@@ -136,7 +172,7 @@ void fail()
     clign_fail = !clign_fail; // for making a clign effect
     fail_counter++;
 
-    for (int i = 0; i < NUMPIXELS; i++)
+    for (int i = 0; i < NB_INPUT; i++)
     {
         if (clign_fail == true)
         {
@@ -153,7 +189,7 @@ void fail()
 
     if (fail_counter == (NUM_CLIGN * 2)) // the last clign effect
     {
-        for (int i = 0; i < NUMPIXELS; i++)
+        for (int i = 0; i < NB_INPUT; i++)
         {
             pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
             pixels.show();
@@ -171,11 +207,16 @@ void fail()
 /// @brief Setup function for the module
 void MySetup()
 {
+#ifdef LOG
+    Serial.println();
+    Serial.print("Number of button :");
+    Serial.println(NB_INPUT);
+#endif
+
     // set inputs
-    for (int i = 0; i < NUMBEROFINPUTS; i++)
+    for (int i = 0; i < NB_INPUT; i++)
     {
-        pinMode(INPUTPINS[i], INPUT);
-        buttons[i].attach(INPUTPINS[i], INPUT);
+        buttons[i].attach(INPUTPINS[i], INPUT_PULLUP);
         buttons[i].interval(5);
     }
 
@@ -184,8 +225,6 @@ void MySetup()
     pixels.setBrightness(50);
     pixels.clear();
     pixels.show();
-
-    breackdown = false;
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -197,7 +236,7 @@ void ResetModule()
     pixels.clear();
     pixels.show();
 
-    breackdown = false; // no breackdown
+    SetWorking(true);
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
@@ -219,15 +258,52 @@ void Received()
     comm.Info_Received();
 
     // The get the received code, use the function GetCode()
-    if (comm.GetCode() == "TST")
+    if (comm.GetCode() == "LED")
     {
-        // If you need to check the number of parameter available, use the function comm.GetSize()
-        Serial.println("Number of received parameter :");
-        Serial.println(comm.GetSize());
+        // Get index of light
+        int i = comm.GetParameter(1).toInt() - 1;
 
-        // If you want to read one parameter, you can use the function comm.GetParameter(x)
-        Serial.println("Value of parameter 1 :");
-        Serial.println(comm.GetParameter(1));
+        // Check if index is in range
+        if (i < 0 || i >= NB_INPUT)
+            return;
+
+        // If we receive juste an other parameter, apply the color depending of the char
+        if (comm.GetSize() == 2)
+        {
+            switch (comm.GetParameter(2)[0])
+            {
+            case '0':
+                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn led OFF
+                break;
+
+            case 'R':
+                pixels.setPixelColor(i, pixels.Color(255, 0, 0)); // turn led red
+                break;
+
+            case 'G':
+                pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // turn led green
+                break;
+
+            case 'B':
+                pixels.setPixelColor(i, pixels.Color(0, 0, 255)); // turn led blue
+                break;
+            }
+        }
+
+        // If we receive 3 parameter, apply the received color
+        if (comm.GetSize() == 4)
+        {
+            // Load color
+            int r = comm.GetParameter(2).toInt();
+            int g = comm.GetParameter(3).toInt();
+            int b = comm.GetParameter(4).toInt();
+
+            // Set received color
+            pixels.setPixelColor(i, pixels.Color(r,g,b)); // turn led blue
+        }
+
+        // Update pixels
+        pixels.show();
     }
 
     if (comm.GetCode() == "POW") // recieve information from the server if it's a succes or a fail
@@ -256,18 +332,31 @@ void Received()
 
     if (comm.GetCode() == "BRN") // recieve the information of a breackdown
     {
-        breackdown = comm.GetParameter(1).toInt();
+        SetWorking(comm.GetParameter(1));
     }
 }
 
 /// @brief When a message is send without server, the message will be received here. You can close the loop to test the module
 void ServerSimulation()
 {
-    // Update navigation status
-    if (comm.GetCode() == "NVC")
+
+    // If i receive a button message
+    if (comm.GetCode() == "BTN")
     {
-        // DO something
-        Serial.println("WOOW, j'ai reçu un NVC en local !");
+        // Get index of light
+        int i = comm.GetParameter(1).toInt() - 1;
+
+        // Check if index is in range
+        if (i < 0 || i >= NB_INPUT)
+            return;
+
+        // Check if we need to turn on
+        if (comm.GetParameterInChar(2)[0] != '1')
+            return;
+
+        // Update the led
+        pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // turn led green
+        pixels.show();
     }
 }
 
