@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <vector>
 
-
 /// @brief Convert chars to int
 /// @param p Text to convert
 /// @return Value in integer
@@ -43,12 +42,9 @@ float CharToFloat(char *p)
      return result;
 }
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Communication                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
-
 
 /// @brief Create a componant to manage the communication
 MyComm::MyComm()
@@ -112,7 +108,7 @@ void MyComm::start()
 }
 
 void MyComm::start(char c)
-{ 
+{
      // Start buffer with a char
      str_out = c;
 }
@@ -246,7 +242,6 @@ void MyComm::_SendServer()
 #endif
 }
 
-
 ///////////////////////////   Received   ///////////////////////////
 
 /// @brief Call when a message is received.
@@ -376,4 +371,66 @@ void MyComm::Info_Received()
           Serial.println(GetParameter(i));
      }
 #endif
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//                                          Pixel                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Create a pixel object
+Pixel::Pixel()
+{
+     this->Red = 0.0;
+     this->Green = 0.0;
+     this->Blue = 0.0;
+}
+
+/// @brief Create a pixel object with color parameter
+/// @param r Red componant of pixel, between 0..1
+/// @param g Green componant of pixel, between 0..1
+/// @param b Blue componant of pixel, between 0..1
+Pixel::Pixel(float r, float g, float b)
+{
+     this->Red = r;
+     this->Green = g;
+     this->Blue = b;
+}
+
+/// @brief Return current color of the pixel
+/// @return Curret red value (0..255)
+uint8_t Pixel::GetRed()
+{
+     if (_on)
+          return static_cast<uint8_t>(Red * Brightness);
+     else
+          return 0;
+}
+
+/// @brief Return current color of the pixel
+/// @return Curret green value (0..255)
+uint8_t Pixel::GetGreen()
+{
+     if (_on)
+          return static_cast<uint8_t>(Green * Brightness);
+     else
+          return 0;
+}
+
+/// @brief Return current color of the pixel
+/// @return Curret blue value (0..255)
+uint8_t Pixel::GetBlue()
+{
+     if (_on)
+          return static_cast<uint8_t>(Blue * Brightness);
+     else
+          return 0;
+}
+
+/// @brief Update color of the pixel
+/// @param newColor New pixel color
+void Pixel::SetColor(Pixel newColor)
+{
+     this->Red = newColor.Red;
+     this->Green = newColor.Green;
+     this->Blue = newColor.Blue;
 }
