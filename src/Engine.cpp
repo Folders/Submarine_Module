@@ -10,12 +10,12 @@
 
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
-#define PIN 0
+#define PIN 16
 #define NUMPIXELS 4 // insert the total of pixels
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
 
 #define DIRECTION 15
-#define CLUTCH 14
+#define CLUTCH 13
 #define START 12
 
 const int RESTARTING_TIME = 5;
@@ -48,7 +48,7 @@ void read_direction()
 {
     direction.update();
 
-    if (direction.changed() && (declutch == 1)) // direction changed without clutch
+    if (direction.changed() && (declutch == 0)) // direction changed without clutch
     {
         error = 1;
     }
@@ -67,16 +67,40 @@ void read_direction()
 /// @brief read clutch interrupt and change declutch
 void read_clutch()
 {
-    clutch.update();
+   
+    bool state = digitalRead(CLUTCH);
+
+    Serial.println(state);
+
+    if (state == LOW) // Bouton enfoncé
+    {
+        Serial.println("Ok");
+        declutch = 0;
+    }
+    else // Bouton relâché
+    {
+        Serial.println("KO");
+        declutch = 1;
+    }
+   
+   
+   
+   /* clutch.update();
+    bool state = clutch.read() ; 
+
+    Serial.println(state);
 
     if (clutch.fell())
     {
-        declutch = 1;
+        Serial.println("Ok");
+        declutch = 0;
     }
     if (clutch.rose())
     {
-        declutch = 0;
+        Serial.println("KO");
+        declutch = 1;
     }
+    */
 }
 
 void motor_status()
@@ -85,42 +109,42 @@ void motor_status()
     if (error == 1) // there is an error
     {
         motor = 0; // motor's stall
-        comm.send("MDR;S");
+      //  comm.send("MDR;S");
 #ifdef LOG
-        Serial.println("Le moteur à calé");
+       // Serial.println("Le moteur à calé");
 #endif
     }
 
     else
     {
-        if (declutch == 0) // clutch is on
+        if (declutch == 1) // clutch is on
         {
             motor = 1; // motor's on
 
             if (motor_dir == 0)
             {
-                comm.send("MDR;B");
+         //       comm.send("MDR;B");
 #ifdef LOG
-                Serial.println("Le moteur tourne en arrière");
+       //         Serial.println("Le moteur tourne en arrière");
 #endif
             }
 
             if (motor_dir == 1)
             {
-                comm.send("MDR;F");
+        //        comm.send("MDR;F");
 #ifdef LOG
-                Serial.println("Le moteur tourne en avant");
+        //        Serial.println("Le moteur tourne en avant");
 #endif
             }
         }
     }
 
-    if (declutch == 1) // if motor is declutched
+    if (declutch == 0) // if motor is declutched
     {
         motor = 0;
-        comm.send("MDR;N");
+    //    comm.send("MDR;N");
 #ifdef LOG
-        Serial.println("Le moteur est debrayé");
+    //    Serial.println("Le moteur est debrayé");
 #endif
     }
 }
@@ -221,7 +245,7 @@ void MySetup()
 #endif
 
     pinMode(DIRECTION, INPUT);
-    pinMode(CLUTCH, INPUT);
+   // pinMode(CLUTCH, INPUT);
     pinMode(START, INPUT);
 
     start.attach(START);
@@ -230,8 +254,8 @@ void MySetup()
     direction.attach(DIRECTION);
     direction.interval(5);
 
-    clutch.attach(CLUTCH);
-    clutch.interval(5);
+   // clutch.attach(CLUTCH, INPUT_PULLUP);
+   // clutch.interval(5);
 
     /// Turn off all leds
     pixels.clear();
@@ -243,6 +267,7 @@ void MySetup()
 /// @brief Call after the config and when the module reset by the app
 void ResetModule()
 {
+     pinMode(CLUTCH, INPUT);
     /// Turn off all leds
     pixels.clear();
     pixels.show();
@@ -254,10 +279,10 @@ void ResetModule()
 void MyLoop()
 {
     read_clutch();
-    read_direction();
-    motor_status();
-    display_motor_status();
-    restart_motor();
+   // read_direction();
+  //  motor_status();
+  //  display_motor_status();
+ //  restart_motor();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
