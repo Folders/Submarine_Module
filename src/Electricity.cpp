@@ -36,6 +36,8 @@ Ticker _Fail;
 /// @brief Electricity is working
 bool _working;
 
+/// @brief During animation, lock new input
+bool _inAnimation = false;
 bool _clign;  // For animation
 int _counter; // For animation
 
@@ -62,9 +64,19 @@ void SetWorking(bool status)
 
         // Update status led
         if (_working)
+            // Set status led to GREEN
             pixels.setPixelColor(NB_INPUT, pixels.Color(0, 255, 0));
         else
+        {
+            // Set status led to RED
             pixels.setPixelColor(NB_INPUT, pixels.Color(255, 0, 0));
+
+            // Turn off every switch light
+            for (int i = 0; i < NB_INPUT; i++)
+            {
+                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+            }
+        }
 
         // Update pixels
         pixels.show();
@@ -84,15 +96,16 @@ void SetWorking(String status)
 /// @brief Read interrupts and send to server if pressed
 void interrupts_read()
 {
+    // For each button
     for (int i = 0; i < NB_INPUT; i++)
     {
-
+        // Update button object
         buttons[i].update();
 
         if (buttons[i].fell()) // inetrrupt has been pressed
         {
             // if there is a breakdown or debug, send button state
-            if (!_working || debug)
+            if ( (!_working || debug) && !_inAnimation)
             {
                 // send information to server
                 comm.start("BTN;");
@@ -107,7 +120,7 @@ void interrupts_read()
             Serial.println();
 #endif
 
-            if (!_working) // turn green the matching led if there is a breakdown
+            if (!_working && !_inAnimation) // turn green the matching led if there is a breakdown
             {
                 pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
                 pixels.show();
@@ -115,7 +128,7 @@ void interrupts_read()
         }
 
         // For debug
-        if (debug)
+        if (debug && !_inAnimation)
         {
             if (buttons[i].rose()) // inetrrupt has been released
             {
@@ -144,8 +157,9 @@ void Succes_Anim()
             pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
         }
 
-        // stop the ticker
+        // Stop the ticker
         _Succes.detach();
+        _inAnimation = false;
     }
     else
     {
@@ -180,18 +194,19 @@ void Succes()
     Serial.println("Sequence: Succes");
 #endif
 
+    // Update module status
+    SetWorking(true);
+
     // Init animation
     _clign = false;
     _counter = 0;
+    _inAnimation = true;
 
     // Call first animation
     Succes_Anim();
 
     // Create the ticker for the reste of the animation
     _Succes.attach(0.5, Succes_Anim);
-
-    // Update module status
-    SetWorking(true);
 }
 
 /// @brief Make the leds lighting red (fail)
@@ -207,11 +222,12 @@ void Fail_Anim()
         // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, pixels.Color(255, 0, 0, 0));
+            pixels.setPixelColor(i, pixels.Color(0, 0, 0));
         }
 
-        // stop the ticker
+        // Stop the ticker
         _Fail.detach();
+        _inAnimation = false;
     }
     else
     {
@@ -249,6 +265,7 @@ void Fail()
     // Init animation
     _clign = false;
     _counter = 0;
+    _inAnimation = true;
 
     // Call first animation
     Fail_Anim();
