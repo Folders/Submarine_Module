@@ -36,11 +36,8 @@ Ticker _Fail;
 /// @brief Electricity is working
 bool _working;
 
-bool clign_succes;
-bool clign_fail;
-
-int victory_counter;
-int fail_counter;
+bool _clign;  // For animation
+int _counter; // For animation
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -68,7 +65,7 @@ void SetWorking(bool status)
             pixels.setPixelColor(NB_INPUT, pixels.Color(0, 255, 0));
         else
             pixels.setPixelColor(NB_INPUT, pixels.Color(255, 0, 0));
-            
+
         // Update pixels
         pixels.show();
     }
@@ -131,75 +128,134 @@ void interrupts_read()
     }
 }
 
-/// @brief Make the leds lighting green (succes)
-void victory()
+/// @brief Victory animation (Call by ticker)
+void Succes_Anim()
 {
-    clign_succes = !clign_succes; // for making a clign effect
+    // Update animation effect
+    _clign = !_clign;
+    _counter++;
 
-    victory_counter++;
-
-    for (int i = 0; i < NB_INPUT; i++)
+    // Check the last clign effect
+    if (_counter == (NUM_CLIGN * 2))
     {
-        if (clign_succes == true)
-        {
-            pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0)); // turn green the led
-        }
-
-        if (clign_succes == false)
-        {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
-        }
-
-        pixels.show();
-    }
-
-    if (victory_counter == (NUM_CLIGN * 2)) // the last clign effect
-    {
+        // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
-            pixels.show();
+            pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
         }
 
-        _Succes.detach();    // stop the ticker
-        victory_counter = 0; // reset counter
+        // stop the ticker
+        _Succes.detach();
     }
+    else
+    {
+        if (_clign == true)
+        {
+            // Turn off every light green
+            for (int i = 0; i < NB_INPUT; i++)
+            {
+                pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+            }
+        }
+
+        if (_clign == false)
+        {
+            // Turn off every light
+            for (int i = 0; i < NB_INPUT; i++)
+            {
+                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+            }
+        }
+    }
+
+    // Update pixel
+    pixels.show();
+}
+
+/// @brief The sequence is sucessful
+void Succes()
+{
+#ifdef LOG
+    // Log info
+    Serial.println("Sequence: Succes");
+#endif
+
+    // Init animation
+    _clign = false;
+    _counter = 0;
+
+    // Call first animation
+    Succes_Anim();
+
+    // Create the ticker for the reste of the animation
+    _Succes.attach(0.5, Succes_Anim);
+
+    // Update module status
+    SetWorking(true);
 }
 
 /// @brief Make the leds lighting red (fail)
-void fail()
+void Fail_Anim()
 {
-    clign_fail = !clign_fail; // for making a clign effect
-    fail_counter++;
+    // Update animation effect
+    _clign = !_clign;
+    _counter++;
 
-    for (int i = 0; i < NB_INPUT; i++)
+    // Check the last clign effect
+    if (_counter == (NUM_CLIGN * 2))
     {
-        if (clign_fail == true)
-        {
-            pixels.setPixelColor(i, pixels.Color(255, 0, 0, 0)); // turn red the led
-        }
-
-        if (clign_fail == false)
-        {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
-        }
-
-        pixels.show();
-    }
-
-    if (fail_counter == (NUM_CLIGN * 2)) // the last clign effect
-    {
+        // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0, 0)); // turn off the led
-            pixels.show();
+            pixels.setPixelColor(i, pixels.Color(255, 0, 0, 0));
         }
 
-        _Fail.detach();   // stop the ticker
-        fail_counter = 0; // reset the counter
+        // stop the ticker
+        _Fail.detach();
     }
+    else
+    {
+        if (_clign == true)
+        {
+            // Turn off every light green
+            for (int i = 0; i < NB_INPUT; i++)
+            {
+                pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+            }
+        }
+
+        if (_clign == false)
+        {
+            // Turn off every light
+            for (int i = 0; i < NB_INPUT; i++)
+            {
+                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+            }
+        }
+    }
+    
+    // Update pixel
+    pixels.show();
 }
 
+/// @brief The sequence is faulty
+void Fail()
+{
+#ifdef LOG
+    // Log info
+    Serial.println("Sequence: Fail");
+#endif
+
+    // Init animation
+    _clign = false;
+    _counter = 0;
+
+    // Call first animation
+    Fail_Anim();
+
+    // Create the ticker for the reste of the animation
+    _Fail.attach(0.5, Fail_Anim);
+}
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,7 +355,7 @@ void Received()
             int b = comm.GetParameter(4).toInt();
 
             // Set received color
-            pixels.setPixelColor(i, pixels.Color(r,g,b)); // turn led blue
+            pixels.setPixelColor(i, pixels.Color(r, g, b)); // turn led blue
         }
 
         // Update pixels
@@ -311,21 +367,11 @@ void Received()
         switch (comm.GetParameter(1)[0])
         {
         case 'F': // fail
-
-#ifdef LOG
-            Serial.println("Fail");
-#endif
-
-            _Fail.attach(0.7, fail);
+            Fail();
             break;
 
         case 'S': // succes
-
-#ifdef LOG
-            Serial.println("Succes");
-#endif
-
-            _Succes.attach(0.7, victory);
+            Succes();
             break;
         }
     }
