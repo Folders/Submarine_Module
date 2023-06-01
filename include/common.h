@@ -215,45 +215,82 @@ public:
 class Pixel
 {
 private:
+
+    /// @brief If the led is one
     bool _on = true;
+
+    /// @brief Current brigntness of the pixel, 0 is disabled, 1 is min and 255 is max.
+    uint8_t _brightness = 0;
 
 public:
     /// @brief Create a pixel object
     Pixel();
 
-    /// @brief Create a pixel object with color parameter
-    /// @param r Red componant of pixel, between 0..1
-    /// @param g Green componant of pixel, between 0..1
-    /// @param b Blue componant of pixel, between 0..1
-    Pixel(float r, float g, float b);
+    /// @brief Create a pixel object with color parameters
+    /// @param r Red componant of pixel, between 0..255
+    /// @param g Green componant of pixel, between 0..255
+    /// @param b Blue componant of pixel, between 0..255
+    Pixel(uint8_t r, uint8_t g, uint8_t b);
 
-    /// @brief Red componant of pixel, between 0..1
-    float Red;
+    /// @brief Create a pixel object with color parameters
+    /// @param r Red componant of pixel, between 0..255
+    /// @param g Green componant of pixel, between 0..255
+    /// @param b Blue componant of pixel, between 0..255
+    /// @param brightness 0= Full ligne (disabled), 1= lower light, 255 = almost max.
+    Pixel(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness);
 
-    /// @brief Green componant of pixel, between 0..1
-    float Green;
+    /// @brief Create a pixel object with one packed color parameter
+    /// @param color Set a pixel's color using a 32-bit 'packed' RGB (Ex: 0xAAFF88)
+    Pixel(uint32_t color);
 
-    /// @brief Blue componant of pixel, between 0..1
-    float Blue;
 
-    /// @brief Current brigntness of the pixel, between 0..255
-    float Brightness = 150;
+    /// @brief Red componant of pixel, between 0..255
+    uint8_t Red;
 
-    /// @brief Return current color of the pixel
-    /// @return Curret red value (0..255)
+    /// @brief Green componant of pixel, between 0..255
+    uint8_t Green;
+
+    /// @brief Blue componant of pixel, between 0..255
+    uint8_t Blue;
+
+    /// @brief Set the brightness of the pixel
+    /// @param brightness 0= Full ligne (disabled), 1= lower light, 255 = almost max.
+    void SetBrightness(uint8_t brightness);
+
+    /// @brief Set the brightness of the pixel
+    /// @param brightness 0= off, 1 = max.
+    void SetBrightness(float brightness);
+
+
+    /// @brief Return red color of the pixel, with brightness
+    /// @return Current red value (0..255)
     uint8_t GetRed();
 
-    /// @brief Return current color of the pixel
-    /// @return Curret green value (0..255)
+    /// @brief Return green color of the pixel, with brightness
+    /// @return Current green value (0..255)
     uint8_t GetGreen();
 
-    /// @brief Return current color of the pixel
-    /// @return Curret blue value (0..255)
+    /// @brief Return blue color of the pixel, with brightness
+    /// @return Current blue value (0..255)
     uint8_t GetBlue();
+
+    /// @brief Return packed color of the pixel, can be used directely with NeoPixel "setPixelColor" function.
+    /// @return Current value (0xRRGGBB)
+    uint32_t GetColor();
 
     /// @brief Update color of the pixel
     /// @param newColor New pixel color
     void SetColor(Pixel newColor);
+
+    /// @brief Update color of the pixel
+    /// @param r Red componant (0..255)
+    /// @param g Green componant (0..255)
+    /// @param b Blue componant (0..255)
+    void SetColor(uint8_t r, uint8_t g, uint8_t b);
+
+    /// @brief Update color of the pixel
+    /// @param newColor Set a pixel's color using a 32-bit 'packed' RGB (0xAAFF88)
+    void SetColor(uint32_t newColor);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

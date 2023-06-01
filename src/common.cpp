@@ -377,54 +377,158 @@ void MyComm::Info_Received()
 //                                          Pixel                                          //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////   Constructor   ///////////////////////////
+
 /// @brief Create a pixel object
 Pixel::Pixel()
 {
-     this->Red = 0.0;
-     this->Green = 0.0;
-     this->Blue = 0.0;
+     this->Red = 0;
+     this->Green = 0;
+     this->Blue = 0;
 }
 
-/// @brief Create a pixel object with color parameter
-/// @param r Red componant of pixel, between 0..1
-/// @param g Green componant of pixel, between 0..1
-/// @param b Blue componant of pixel, between 0..1
-Pixel::Pixel(float r, float g, float b)
+/// @brief Create a pixel object with color parameters
+/// @param r Red componant of pixel, between 0..255
+/// @param g Green componant of pixel, between 0..255
+/// @param b Blue componant of pixel, between 0..255
+Pixel::Pixel(uint8_t r, uint8_t g, uint8_t b)
 {
      this->Red = r;
      this->Green = g;
      this->Blue = b;
 }
 
-/// @brief Return current color of the pixel
-/// @return Curret red value (0..255)
+/// @brief Create a pixel object with color parameters
+/// @param r Red componant of pixel, between 0..1
+/// @param g Green componant of pixel, between 0..1
+/// @param b Blue componant of pixel, between 0..1
+/// @param brightness 0= Full ligne (disabled), 1= lower light, 255 = almost max.
+Pixel::Pixel(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)
+{
+     this->Red = r;
+     this->Green = g;
+     this->Blue = b;
+     this->_brightness = brightness;
+}
+
+/// @brief Create a pixel object with one packed color parameter
+/// @param color Set a pixel's color using a 32-bit 'packed' RGB (Ex: 0xAAFF88)
+Pixel::Pixel(uint32_t color)
+{
+     this->Red = (uint8_t)(color >> 16);
+     this->Green = (uint8_t)(color >> 8);
+     this->Blue = (uint8_t)(color);
+}
+
+
+     ///////////////////////////   Brightness   ///////////////////////////
+
+/// @brief Set the brightness of the pixel
+/// @param brightness 0= Full ligne (disabled), 1= lower light, 255 = almost max.
+void Pixel::SetBrightness(uint8_t brightness)
+{
+     this->_brightness = brightness;
+}
+
+/// @brief Set the brightness of the pixel
+/// @param brightness 0= off, 1 = max.
+void Pixel::SetBrightness(float brightness)
+{
+     // If maximum
+     if (brightness >= 1.0)
+     {
+          // Maximum of brightness
+          this->_on = true;
+          this->_brightness = 0;
+     }
+     else if (brightness <= 0)
+     {
+          // Turn off
+          this->_on = false;
+          this->_brightness = 1;
+     }
+     else
+     {
+          // Convert float to int
+          this->_on = true;
+          this->_brightness = static_cast<uint8_t>(brightness * 254.0) + 1;
+     }
+}
+
+
+     ///////////////////////////   Get color   ///////////////////////////
+
+/// @brief Return current color of the pixel (with brightness)
+/// @return Current red value (0..255)
 uint8_t Pixel::GetRed()
 {
+     // If the led is On
      if (_on)
-          return static_cast<uint8_t>(Red * Brightness);
+     {
+          // Compute red level with brightness
+          if (_brightness)
+               return (Red * _brightness) >> 8;
+          else
+               return Red;
+     }
      else
           return 0;
 }
 
-/// @brief Return current color of the pixel
-/// @return Curret green value (0..255)
+/// @brief Return current color of the pixel (with brightness)
+/// @return Current green value (0..255)
 uint8_t Pixel::GetGreen()
 {
+     // If the led is On
      if (_on)
-          return static_cast<uint8_t>(Green * Brightness);
+     {
+          // Compute red level with brightness
+          if (_brightness)
+               return (Green * _brightness) >> 8;
+          else
+               return Green;
+     }
      else
           return 0;
 }
 
-/// @brief Return current color of the pixel
-/// @return Curret blue value (0..255)
+/// @brief Return current color of the pixel (with brightness)
+/// @return Current blue value (0..255)
 uint8_t Pixel::GetBlue()
 {
+     // If the led is On
      if (_on)
-          return static_cast<uint8_t>(Blue * Brightness);
+     {
+          // Compute red level with brightness
+          if (_brightness)
+               return (Blue * _brightness) >> 8;
+          else
+               return Blue;
+     }
      else
           return 0;
 }
+
+/// @brief Return packed color of the pixel, can be used directely with NeoPixel "setPixelColor" function.
+/// @return Current value (0xRRGGBB)
+uint32_t Pixel::GetColor()
+{
+     // If the led is On
+     if (_on)
+     {
+          // Compute packed level with brightness
+          if (_brightness)
+               return    (((uint32_t)(Red << 8) / _brightness) << 16) |
+                         (((uint32_t)(Green << 8) / _brightness) << 8) | 
+                         ((uint32_t)(Blue << 8) / _brightness);
+          else
+               return ((uint32_t)Red << 16) | ((uint32_t)Green << 8) | (uint32_t)Blue;
+     }
+     else
+          return 0;    
+}
+
+     ///////////////////////////   Color update   ///////////////////////////
 
 /// @brief Update color of the pixel
 /// @param newColor New pixel color
@@ -433,4 +537,24 @@ void Pixel::SetColor(Pixel newColor)
      this->Red = newColor.Red;
      this->Green = newColor.Green;
      this->Blue = newColor.Blue;
+}
+
+/// @brief Update color of the pixel
+/// @param r Red componant (0..255)
+/// @param g Green componant (0..255)
+/// @param b Blue componant (0..255)
+void Pixel::SetColor(uint8_t r, uint8_t g, uint8_t b)
+{
+     this->Red = r;
+     this->Green = g;
+     this->Blue = b;
+}
+
+/// @brief Update color of the pixel
+/// @param newColor Set a pixel's color using a 32-bit 'packed' RGB (0xAAFF88)
+void Pixel::SetColor(uint32_t newColor)
+{
+     this->Red = (uint8_t)(newColor >> 16);
+     this->Green = (uint8_t)(newColor >> 8);
+     this->Blue = (uint8_t)(newColor);
 }
