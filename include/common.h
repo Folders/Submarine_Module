@@ -15,12 +15,13 @@
 // Define witch module is used (ONLY ONE)
 // #define MODEL
 // #define BREACH
-#define ELECTRICITY
+//#define ELECTRICITY
 // #define ENERGY
 // #define ENGINE
 // #define EXTINGUISHER
 // #define FIRE
 // #define NAVIGATION
+#define OXYGEN
 // #define RADAR
 // #define SHIELD
 // #define TORPEDO
@@ -46,6 +47,8 @@
 #define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
 #elif defined(NAVIGATION)
 #define TYPE "NAV"
+#elif defined(OXYGEN)
+#define TYPE "OXY"
 #elif defined(RADAR)
 #define TYPE "RDR"
 #elif defined(SHIELD)
