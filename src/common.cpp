@@ -374,6 +374,101 @@ void MyComm::Info_Received()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+//                                          Analog                                         //
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Define average function
+/// @param average Average number
+void Analog::_SetAvg(uint8_t average)
+{
+     // Init avg info
+     _avgUsed = true;
+     _avgNb = static_cast<float>(average);
+}
+
+/// @brief Define map function
+/// @param in_Min
+/// @param in_Max
+/// @param out_Min
+/// @param out_Max
+void Analog::_SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max)
+{
+     // Init avg info
+     _mapUsed = true;
+     _mapInMin = in_Min;
+     _mapInMax = in_Max;
+     _mapOutMin = out_Min;
+     _mapOutMax = out_Max;
+}
+
+/// @brief Read analog value from an input
+/// @return Current analog value
+uint16_t Analog::Read()
+{
+     // Get the analog value
+     _in = analogRead(_pin);
+
+     // Make an averge of the value
+     if (_avgUsed)
+     {
+          // Make an average
+          _avgSum += static_cast<float>(_in);
+          _avgSum -= _avgOut;
+          _avgOut = _avgSum / _avgNb;
+
+          // Update the value
+          _in = static_cast<uint16_t>(_avgOut);
+     }
+
+     // Map the value to an ouput if needed
+     if (_mapUsed)
+     {
+          _in = map(_in, _mapInMin, _mapInMax, _mapOutMin, _mapOutMax);
+     }
+
+     // Check if an update is needed
+
+     return _in;
+}
+
+/// @brief Define analog input
+/// @param pin Input pin
+Analog::Analog(uint8_t pin)
+{
+     _pin = pin;
+}
+
+/// @brief Define analog input with an average
+/// @param pin Input pin
+/// @param average Average of the analog input
+Analog::Analog(uint8_t pin, uint8_t average)
+{
+     _pin = pin;
+
+     // Init avg info
+     _SetAvg(average);
+}
+
+/// @brief Define analog input with a mapping
+/// @param pin Input pin
+/// @param average Average of the analog input
+/// @param in_Min Minimum value of the analog input
+/// @param in_Max Maximum value of the analog input
+/// @param out_Min Minimum of the user value (mapping)
+/// @param out_Max Maximum of the user value (mapping)
+Analog::Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max)
+{
+     _pin = pin;
+
+     // Init avg info
+     _SetAvg(average);
+
+     // Init map
+     _SetMap(in_Min, in_Max, out_Min, out_Max);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 //                                          Pixel                                          //
 /////////////////////////////////////////////////////////////////////////////////////////////
 

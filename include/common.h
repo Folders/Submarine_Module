@@ -13,17 +13,18 @@
 // #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-// #define MODEL
-// #define BREACH
-#define ELECTRICITY
-// #define ENERGY
-// #define ENGINE
-// #define EXTINGUISHER
-// #define FIRE
-// #define NAVIGATION
-// #define RADAR
-// #define SHIELD
-// #define TORPEDO
+//#define MODEL
+//#define BREACH
+//#define ELECTRICITY
+//#define ENERGY
+//#define ENGINE
+//#define EXTINGUISHER
+//#define FIRE 
+//#define NAVIGATION
+//#define RADAR
+#define REACTOR
+//#define SHIELD
+//#define TORPEDO
 
 
 // Define module number if more then one is used
@@ -48,6 +49,8 @@
 #define TYPE "NAV"
 #elif defined(RADAR)
 #define TYPE "RDR"
+#elif defined(REACTOR)
+#define TYPE "REA"
 #elif defined(SHIELD)
 #define TYPE "SHI"
 #elif defined(TORPEDO)
@@ -292,6 +295,64 @@ public:
     /// @brief Update color of the pixel
     /// @param newColor Set a pixel's color using a 32-bit 'packed' RGB (0xAAFF88)
     void SetColor(uint32_t newColor);
+};
+
+
+/// @brief Analog management
+class Analog
+{
+private:
+    uint8_t _pin;
+    uint16_t _in;
+
+    //////////////////////////  Average datas  //////////////////////////
+    bool _avgUsed = false;
+    float _avgSum;
+    float _avgNb = 0;
+    float _avgOut = 0;
+
+    /// @brief Define average function
+    /// @param average Average number
+    void _SetAvg(uint8_t average);
+
+    //////////////////////////  Mapping datas  //////////////////////////
+    bool _mapUsed = false;
+    uint16_t _mapInMin = 0;
+    uint16_t _mapInMax = 0;
+    uint16_t _mapOutMin = 0;
+    uint16_t _mapOutMax = 0;
+
+    /// @brief Define map function
+    /// @param in_Min 
+    /// @param in_Max 
+    /// @param out_Min 
+    /// @param out_Max 
+    void _SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max);
+    
+public:
+
+    /// @brief Read analog value from an input
+    /// @return Current analog value
+    uint16_t Read();
+
+    /// @brief Define analog input
+    /// @param pin Input pin
+    Analog(uint8_t pin);
+
+    /// @brief Define analog input with an average
+    /// @param pin Input pin
+    /// @param average Average of the analog input
+    Analog(uint8_t pin, uint8_t average);
+    
+    /// @brief Define analog input with a mapping
+    /// @param pin Input pin
+    /// @param average Average of the analog input
+    /// @param in_Min Minimum value of the analog input
+    /// @param in_Max Maximum value of the analog input
+    /// @param out_Min Minimum of the user value (mapping)
+    /// @param out_Max Maximum of the user value (mapping)
+    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max );
+
 };
 
 
