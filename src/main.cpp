@@ -19,6 +19,7 @@
 #include <Fire.h>
 #include <Model.h>
 #include <Navigation.h>
+#include <Oxygen.h>
 #include <Radar.h>
 #include <Shield.h>
 #include <Torpedo.h>
