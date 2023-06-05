@@ -60,7 +60,7 @@
 #define GAUGE_TEMP_WIDTH 250
 #define GAUGE_TEMP_HEIGHT 21
 #define GAUGE_TEMP_LEFT 10
-#define GAUGE_TEMP_TOP 210 
+#define GAUGE_TEMP_TOP 215 
 
 
 
@@ -85,6 +85,7 @@ int _Tol = 5;
 
 // Timmer
 Ticker Time_Update;
+Ticker Cursor_Update;
 
 #ifdef ESP8266
 
@@ -112,6 +113,118 @@ Ticker Time_Update;
 
 // TFT screen
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST, TFT_MISO);
+
+
+/// @brief Analog management
+class Analog
+{
+private:
+    uint8_t _pin;
+    uint16_t _in;
+
+    //////////////////////////  Average datas  //////////////////////////
+    bool _avgUsed = false;
+    float _avgSum;
+    float _avgNb = 0;
+    float _avgOut = 0;
+
+    /// @brief Define average function
+    /// @param average Average number
+    void _SetAvg(uint8_t average)
+    {
+        // Init avg info
+        _avgUsed = true;
+        _avgNb = static_cast<float>(average);
+    }
+
+    //////////////////////////  Mapping datas  //////////////////////////
+    bool _mapUsed = false;
+    uint16_t _mapInMin = 0;
+    uint16_t _mapInMax = 0;
+    uint16_t _mapOutMin = 0;
+    uint16_t _mapOutMax = 0;
+
+    /// @brief Define map function
+    /// @param in_Min 
+    /// @param in_Max 
+    /// @param out_Min 
+    /// @param out_Max 
+    void _SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max)
+    {
+        // Init avg info
+        _mapUsed = true;
+        _mapInMin = in_Min;
+        _mapInMax = in_Max;
+        _mapOutMin = out_Min;
+        _mapOutMax = out_Max;
+    }
+
+    //////////////////////////  Update datas  //////////////////////////
+    bool _updateUsed = false;
+    /// @brief Function to call when a text is received
+    void (*ReceiveFuncPtr)();
+    
+public:
+
+    /// @brief Read analog value from an input
+    /// @return 
+    uint16_t Read()
+    {
+        // Get the analog value
+        _in = analogRead(_pin);
+
+        // Make an averge of the value
+        if (_avgUsed)
+        {
+            // Make an average
+            _avgSum += static_cast<float>(_in);
+            _avgSum -= _avgOut;
+            _avgOut = _avgSum / _avgNb;
+
+            // Update the value
+            _in = static_cast<uint16_t>(_avgOut);
+        }
+
+        // Map the value to an ouput if needed
+        if (_mapUsed)
+        {
+            _in = map(_in, _mapInMin, _mapInMax, _mapOutMin, _mapOutMax);
+        }
+
+        // Check if an update is needed
+
+        return _in;
+    }
+
+    Analog(uint8_t pin)
+    {
+        _pin = pin;
+    }
+
+    Analog(uint8_t pin, uint8_t average)
+    {
+        _pin = pin;
+
+        // Init avg info
+        _SetAvg(average);
+    }
+    
+    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max )
+    {
+        _pin = pin;
+
+        // Init avg info
+        _SetAvg(average);
+
+        // Init map
+        _SetMap(in_Min, in_Max, out_Min, out_Max);
+    }
+
+};
+
+
+Analog Power(ANALOG_POWER);
+Analog Temp(ANALOG_POWER, 50, 0, 8191, 0,100);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -309,6 +422,98 @@ void Draw_TempGauge()
 
 
 
+/// @brief Draw a standard gauge componant
+/// @param width Width of the gauge [pix]
+/// @param hight Height of the gauge [pix]
+/// @param left Final left position [pix]
+/// @param top Final top position [pix]
+/// @param filling Current position of the filling [0..100%]
+/// @param tol Tolerence of the filling [0..100%]
+/// @param color_low Color of the low side of gauge
+/// @param color_high Color of the high side of gauge
+void DrawCursor(int16_t width, int16_t height, int16_t left, int16_t top, int filling, int &old, uint16_t color)
+{
+
+    bool IsVert;
+    int16_t cursor;
+
+    int NewTop, NewLeft;
+    int PosOld,PosNew;
+
+    // Return if no change
+    if (filling == old)
+        return;
+
+Serial.printf("New is %4i, old is %4i.\n", filling, old);
+
+    // Define direction of gauge
+    if (height > width)
+    {
+        // Compute radius for vertical gauge
+        IsVert = true;
+        cursor = width;
+
+        // Redraw on old value
+        PosOld = map(old, 0, 100, height, 0);
+        PosNew = map(filling, 0, 100, height, 0);
+
+        NewLeft = left;
+        NewTop = top + PosOld - cursor/2;
+    }
+    else
+    {
+        // Compute radius for horizontal gauge
+        IsVert = false;
+        cursor = height;
+
+        // Redraw on old value
+        PosOld = map(old, 0, 100, 0, width);
+        PosNew = map(filling, 0, 100, 0, width);
+
+        NewLeft = left + PosOld - cursor/2;
+        NewTop = top;
+    }
+
+    // Canvas of power gauge
+    GFXcanvas16 canvas(cursor, cursor);
+
+    // Put the canvas at the right side
+    tft.drawRGBBitmap(NewLeft, NewTop, canvas.getBuffer(), canvas.width(), canvas.height());
+
+    
+    // Outside rectangle
+    canvas.fillRoundRect(0, 0, cursor, cursor, 2, color);
+
+    // Fill re
+    if (IsVert)
+    {
+        NewLeft = left;
+        NewTop = top + PosNew - cursor/2;
+    }
+    else
+    {
+        NewLeft = left + PosNew - cursor/2;
+        NewTop = top;
+    }
+    
+    
+    // Put the canvas at the right side
+    tft.drawRGBBitmap(NewLeft, NewTop, canvas.getBuffer(), canvas.width(), canvas.height());
+
+    // Backup
+    old = filling;
+}
+
+int _oldTempCursor;
+
+/// @brief Draw the temperature gauge.
+void Draw_Cursor()
+{
+    // Test horizontal power gauge
+    DrawCursor(GAUGE_TEMP_WIDTH, 10, GAUGE_TEMP_LEFT, GAUGE_TEMP_TOP - 10, Temp.Read(), _oldTempCursor, ILI9341_RED);
+}
+
+
 int _graphInd;
 int _graphMax;
 int _graphOld = 0;
@@ -428,121 +633,15 @@ void ResetModule()
     // Trigger timer every second in standalone
     if (!Time_Update.active())
         Time_Update.attach(1, Draw_Update);
+
+    
+        if (!Cursor_Update.active())
+        Cursor_Update.attach(0.05, Draw_Cursor);
 #endif
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 
-/// @brief Analog management
-class Analog
-{
-private:
-    uint8_t _pin;
-    uint16_t _in;
-
-    //////////////////////////  Average datas  //////////////////////////
-    bool _avgUsed = false;
-    float _avgSum;
-    float _avgNb = 0;
-    float _avgOut = 0;
-
-    /// @brief Define average function
-    /// @param average Average number
-    void _SetAvg(uint8_t average)
-    {
-        // Init avg info
-        _avgUsed = true;
-        _avgNb = static_cast<float>(average);
-    }
-
-    //////////////////////////  Mapping datas  //////////////////////////
-    bool _mapUsed = false;
-    uint16_t _mapInMin = 0;
-    uint16_t _mapInMax = 0;
-    uint16_t _mapOutMin = 0;
-    uint16_t _mapOutMax = 0;
-
-    /// @brief Define map function
-    /// @param in_Min 
-    /// @param in_Max 
-    /// @param out_Min 
-    /// @param out_Max 
-    void _SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max)
-    {
-        // Init avg info
-        _mapUsed = true;
-        _mapInMin = in_Min;
-        _mapInMax = in_Max;
-        _mapOutMin = out_Min;
-        _mapOutMax = out_Max;
-    }
-
-    //////////////////////////  Update datas  //////////////////////////
-    bool _updateUsed = false;
-    /// @brief Function to call when a text is received
-    void (*ReceiveFuncPtr)();
-    
-public:
-
-    /// @brief Read analog value from an input
-    /// @return 
-    uint16_t Read()
-    {
-        // Get the analog value
-        _in = analogRead(_pin);
-
-        // Make an averge of the value
-        if (_avgUsed)
-        {
-            // Make an average
-            _avgSum += static_cast<float>(_in);
-            _avgSum -= _avgOut;
-            _avgOut = _avgSum / _avgNb;
-
-            // Update the value
-            _in = static_cast<uint16_t>(_avgOut);
-        }
-
-        // Map the value to an ouput if needed
-        if (_mapUsed)
-        {
-            _in = map(_in, _mapInMin, _mapInMax, _mapOutMin, _mapOutMax);
-        }
-
-        // Check if an update is needed
-
-        return _in;
-    }
-
-    Analog(uint8_t pin)
-    {
-        _pin = pin;
-    }
-
-    Analog(uint8_t pin, uint8_t average)
-    {
-        _pin = pin;
-
-        // Init avg info
-        _SetAvg(average);
-    }
-    
-    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max )
-    {
-        _pin = pin;
-
-        // Init avg info
-        _SetAvg(average);
-
-        // Init map
-        _SetMap(in_Min, in_Max, out_Min, out_Max);
-    }
-
-};
-
-
-Analog Power(ANALOG_POWER);
-Analog Temp(ANALOG_POWER, 50, 0, 8191, 0,100);
 
 /// @brief Call at the end of the main loop function
 void MyLoop()
@@ -550,8 +649,10 @@ void MyLoop()
     int ValPower = Power.Read(); //analogRead(ANALOG_POWER);
     int ValTemp = Temp.Read(); //analogRead(ANALOG_TEMP);
     
+    //Draw_TempCursor(ValTemp);
+
 #ifdef LOG
-    Serial.printf("Power is %4i and temperature is %4i.\n", ValPower, ValTemp);
+   // Serial.printf("Power is %4i and temperature is %4i.\n", ValPower, ValTemp);
 #endif
 }
 
