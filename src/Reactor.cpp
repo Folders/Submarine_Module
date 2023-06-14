@@ -3,18 +3,16 @@
 
 #include <Arduino.h>
 
-
 #ifdef ESP8266
 #error "Only use an ESP32"
 // 1. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
 // 2. We need two analog input
 #endif
 
-
-
 //////// Add new include library
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <Adafruit_NeoPixel.h>
 #include <Ticker.h>
 
 /*                 -----  Screen layout  -----
@@ -44,39 +42,52 @@
 */
 
 // 1. Graph position and size
-#define GRAPH_WIDTH 250         // Multiple of graph step
+#define GRAPH_WIDTH 280 // Multiple of graph step       // 250 old
 #define GRAPH_HEIGHT 200
-#define GRAPH_LEFT 2            // Min = 2
-#define GRAPH_TOP 2             // Min = 2
-#define GRAPH_STEP 5            // Width of graph update
+#define GRAPH_LEFT 2 // Min = 2
+#define GRAPH_TOP 2  // Min = 2
+#define GRAPH_STEP 5 // Width of graph update
 
 // 2. Power gauge
 #define GAUGE_POWER_WIDTH 21
 #define GAUGE_POWER_HEIGHT 181
-#define GAUGE_POWER_LEFT 290
-#define GAUGE_POWER_TOP 10 
+#define GAUGE_POWER_LEFT 299        // 290 old
+#define GAUGE_POWER_TOP 10
+
+// 3. Temperature cursor
+#define CURSOR_POWER_WIDTH 9
+#define CURSOR_POWER_HEIGHT GAUGE_POWER_HEIGHT - GAUGE_POWER_WIDTH
+#define CURSOR_POWER_LEFT GAUGE_POWER_LEFT - 10
+#define CURSOR_POWER_TOP GAUGE_POWER_TOP + GAUGE_POWER_WIDTH / 2
 
 // 4. Temperature gauge
-#define GAUGE_TEMP_WIDTH 250
+#define GAUGE_TEMP_WIDTH 260
 #define GAUGE_TEMP_HEIGHT 21
 #define GAUGE_TEMP_LEFT 10
-#define GAUGE_TEMP_TOP 215 
+#define GAUGE_TEMP_TOP 219          // 210 old
 
-// 4. Temperature cursor
+// 5. Temperature cursor
 #define CURSOR_TEMP_WIDTH GAUGE_TEMP_WIDTH - GAUGE_TEMP_HEIGHT
 #define CURSOR_TEMP_HEIGHT 9
 #define CURSOR_TEMP_LEFT GAUGE_TEMP_LEFT + GAUGE_TEMP_HEIGHT / 2
-#define CURSOR_TEMP_TOP GAUGE_TEMP_TOP - 10 
-
+#define CURSOR_TEMP_TOP GAUGE_TEMP_TOP - 10
 
 /* ESP8266 Analog Pin ADC0 = A0 */
-#define ANALOG_POWER 16 
-#define ANALOG_TEMP 18 
+#define ANALOG_POWER 16
+#define ANALOG_TEMP 18
 
 
-////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
-// const int TEST_IN = 10;
-// const int TEST_OUT = 11;
+// Neopixels setup
+#define PIXEL_PIN 33
+#define PIXEL_NB 2 // insert the total of pixels
+Adafruit_NeoPixel pixels(PIXEL_NB, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
+// Color define
+Pixel pOk(0x00FF00);
+Pixel pTooHot(0xFF0000);
+Pixel pTooCold(0x0000FF);
+Pixel pTooHigh(0xFFFF00);
+Pixel pTooLow(0x330000);
 
 ////////  Define global variables
 int _testInt = 0;
@@ -118,8 +129,8 @@ Ticker Cursor_Update;
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST, TFT_MISO);
 
 // Analog input
-Analog Power(ANALOG_POWER);
-Analog Temp(ANALOG_POWER, 50, 0, 8191, 0,100);
+Analog Power(ANALOG_POWER, 50, 0, 8191, 0, 100);
+Analog Temp(ANALOG_TEMP, 50, 0, 8191, 0, 100);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -130,12 +141,12 @@ Analog Temp(ANALOG_POWER, 50, 0, 8191, 0,100);
 /// @brief Create draw line function for a canvas. The TFT drawLine function make an overflow for the ESP8266 because of yield function.
 /// @param canvas Target convas to write the line
 /// @param x0 Start position of line on X axis
-/// @param y0 Start position of line on Y axis 
+/// @param y0 Start position of line on Y axis
 /// @param x1 End position of line on X axis
 /// @param y1 End position of line on Y axis
 /// @param color Color of the line
 void drawLine(GFXcanvas1 &canvas, int x0, int y0, int x1, int y1, uint16_t color)
-{ 
+{
     // Calculer les différences entre les coordonnées des deux points
     int dx = abs(x1 - x0);
     int dy = abs(y1 - y0);
@@ -299,7 +310,6 @@ void DrawGauge(int16_t width, int16_t height, int16_t left, int16_t top, float f
     tft.drawRGBBitmap(left, top, canvas.getBuffer(), canvas.width(), canvas.height());
 }
 
-
 /// @brief Draw the power gauge.
 void Draw_PowerGauge()
 {
@@ -307,15 +317,12 @@ void Draw_PowerGauge()
     DrawGauge(GAUGE_POWER_WIDTH, GAUGE_POWER_HEIGHT, GAUGE_POWER_LEFT, GAUGE_POWER_TOP, _ConsoPower, _Tol, ILI9341_MAROON, ILI9341_YELLOW);
 }
 
-
 /// @brief Draw the temperature gauge.
 void Draw_TempGauge()
 {
     // Test horizontal power gauge
     DrawGauge(GAUGE_TEMP_WIDTH, GAUGE_TEMP_HEIGHT, GAUGE_TEMP_LEFT, GAUGE_TEMP_TOP, _TempNeeded, _Tol, ILI9341_BLUE, ILI9341_RED);
 }
-
-
 
 /// @brief Draw a standard gauge componant
 /// @param width Width of the gauge [pix]
@@ -333,13 +340,13 @@ void DrawCursor(int16_t width, int16_t height, int16_t left, int16_t top, int fi
     int16_t cursor;
 
     int NewTop, NewLeft;
-    int PosOld,PosNew;
+    int PosOld, PosNew;
 
     // Return if no change
     if (filling == old)
         return;
 
-Serial.printf("New is %4i, old is %4i.\n", filling, old);
+    Serial.printf("New is %4i, old is %4i.\n", filling, old);
 
     // Define direction of gauge
     if (height > width)
@@ -353,7 +360,7 @@ Serial.printf("New is %4i, old is %4i.\n", filling, old);
         PosNew = map(filling, 0, 100, height, 0);
 
         NewLeft = left;
-        NewTop = top + PosOld - cursor/2;
+        NewTop = top + PosOld - cursor / 2;
     }
     else
     {
@@ -365,7 +372,7 @@ Serial.printf("New is %4i, old is %4i.\n", filling, old);
         PosOld = map(old, 0, 100, 0, width);
         PosNew = map(filling, 0, 100, 0, width);
 
-        NewLeft = left + PosOld - cursor/2;
+        NewLeft = left + PosOld - cursor / 2;
         NewTop = top;
     }
 
@@ -375,28 +382,33 @@ Serial.printf("New is %4i, old is %4i.\n", filling, old);
     // Put the canvas at the right side
     tft.drawRGBBitmap(NewLeft, NewTop, canvas.getBuffer(), canvas.width(), canvas.height());
 
-    
     // Outside rectangle
-    //canvas.fillTriangle(0, 0, cursor/2, canvas.height(), cursor/2, cursor/2, color);
-    //canvas.fillTriangle(canvas.width(), 0, cursor/2, canvas.height(), cursor/2, cursor/2, color);
+    // canvas.fillTriangle(0, 0, cursor/2, canvas.height(), cursor/2, cursor/2, color);
+    // canvas.fillTriangle(canvas.width(), 0, cursor/2, canvas.height(), cursor/2, cursor/2, color);
     cursor--;
-
-    canvas.fillTriangle(0, 0, cursor/2, cursor, cursor, 0, color);
-    canvas.fillTriangle(0+1, 0, cursor/2, cursor/3, cursor-1, 0, 0);
 
     // Fill re
     if (IsVert)
     {
+        // Drive vertical arrow
+        canvas.fillTriangle(0, 0, cursor, cursor / 2, 0, cursor, color);
+        canvas.fillTriangle(0, 0 + 1, cursor / 3, cursor / 2, 0, cursor - 1, 0);
+
+        // Compute arrow position
         NewLeft = left;
-        NewTop = top + PosNew - cursor/2;
+        NewTop = top + PosNew - cursor / 2;
     }
     else
     {
-        NewLeft = left + PosNew - cursor/2;
+        // Drive horizontal arrow
+        canvas.fillTriangle(0, 0, cursor / 2, cursor, cursor, 0, color);
+        canvas.fillTriangle(0 + 1, 0, cursor / 2, cursor / 3, cursor - 1, 0, 0);
+
+        // Compute arrow position
+        NewLeft = left + PosNew - cursor / 2;
         NewTop = top;
     }
-    
-    
+
     // Put the canvas at the right side
     tft.drawRGBBitmap(NewLeft, NewTop, canvas.getBuffer(), canvas.width(), canvas.height());
 
@@ -404,15 +416,18 @@ Serial.printf("New is %4i, old is %4i.\n", filling, old);
     old = filling;
 }
 
+int _oldPowerCursor;
 int _oldTempCursor;
 
 /// @brief Draw the temperature gauge.
-void Draw_Cursor()
+void Draw_Cursors()
 {
-    // Test horizontal power gauge
+    // Vertical power gauge
+    DrawCursor(CURSOR_POWER_WIDTH, CURSOR_POWER_HEIGHT, CURSOR_POWER_LEFT, CURSOR_POWER_TOP, Power.Read(), _oldPowerCursor, ILI9341_RED);
+
+    // Horizontal temperature gauge
     DrawCursor(CURSOR_TEMP_WIDTH, CURSOR_TEMP_HEIGHT, CURSOR_TEMP_LEFT, CURSOR_TEMP_TOP, Temp.Read(), _oldTempCursor, ILI9341_RED);
 }
-
 
 int _graphInd;
 int _graphMax;
@@ -445,9 +460,9 @@ void Draw_Graph()
         canvas.drawLine(0, y1, 3, y1 + 3, 0xFFFF);
         canvas.drawLine(0, y1, 3, y1 - 3, 0xFFFF);
         canvas.drawLine(3, y1 - 3, 3, y1 + 3, 0xFFFF);
-        //drawLine(canvas, 0, y1, 3, y1 + 3, 0xFFFF);
-        //drawLine(canvas, 0, y1, 3, y1 - 3, 0xFFFF);
-        //drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0xFFFF);
+        // drawLine(canvas, 0, y1, 3, y1 + 3, 0xFFFF);
+        // drawLine(canvas, 0, y1, 3, y1 - 3, 0xFFFF);
+        // drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0xFFFF);
 
         // Put in next emplacement the triangle
         tft.drawBitmap(GRAPH_LEFT + _graphInd + GRAPH_STEP, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), ILI9341_RED, 0x0000);
@@ -456,9 +471,9 @@ void Draw_Graph()
         canvas.drawLine(0, y1, 3, y1 + 3, 0x0000);
         canvas.drawLine(0, y1, 3, y1 - 3, 0x0000);
         canvas.drawLine(3, y1 - 3, 3, y1 + 3, 0x0000);
-        //drawLine(canvas, 0, y1, 3, y1 + 3, 0x0000);
-        //drawLine(canvas, 0, y1, 3, y1 - 3, 0x0000);
-        //drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0x0000);
+        // drawLine(canvas, 0, y1, 3, y1 + 3, 0x0000);
+        // drawLine(canvas, 0, y1, 3, y1 - 3, 0x0000);
+        // drawLine(canvas, 3, y1 - 3, 3, y1 + 3, 0x0000);
     }
 
 #ifdef LOG
@@ -470,7 +485,7 @@ void Draw_Graph()
 
     // Draw the line to the new random position
     canvas.drawLine(x0, y0, x1, y1, 0xFFFF);
-    //drawLine(canvas, x0, y0, x1, y1, 0xFFFF);
+    // drawLine(canvas, x0, y0, x1, y1, 0xFFFF);
 
     // Draw de canvas
     tft.drawBitmap(GRAPH_LEFT + _graphInd, GRAPH_TOP, canvas.getBuffer(), canvas.width(), canvas.height(), 0xFFFF, 0x0000);
@@ -492,7 +507,6 @@ void Draw_Update()
 
 #pragma endregion
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,8 +518,9 @@ void MySetup()
     tft.begin();        // start the screen
     tft.setRotation(1); // landscreen, connexion up
 
-
-
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.setPixelColor(1, pixels.Color(255, 0, 0));
+    pixels.show();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -529,30 +544,62 @@ void ResetModule()
     // And the graphique
     // Draw_Graph();
 
+    if (!Cursor_Update.active())
+        Cursor_Update.attach(0.05, Draw_Cursors);
+
 #ifdef STANDALONE
     // Trigger timer every second in standalone
     if (!Time_Update.active())
         Time_Update.attach(1, Draw_Update);
-
-    
-        if (!Cursor_Update.active())
-        Cursor_Update.attach(0.05, Draw_Cursor);
 #endif
 }
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 
-
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    int ValPower = Power.Read(); //analogRead(ANALOG_POWER);
-    int ValTemp = Temp.Read(); //analogRead(ANALOG_TEMP);
-    
-    //Draw_TempCursor(ValTemp);
+    int ValPower = Power.Read(); // analogRead(ANALOG_POWER);
+    int ValTemp = Temp.Read();   // analogRead(ANALOG_TEMP);
 
+
+
+    if (ValPower < _ConsoPower - _Tol)
+        pixels.setPixelColor(0, pTooLow.GetColor());
+    else if (ValPower > _ConsoPower + _Tol)
+        pixels.setPixelColor(0, pTooHigh.GetColor());
+    else
+        pixels.setPixelColor(0, pOk.GetColor());
+
+
+    if (ValTemp < _TempNeeded - _Tol)
+        pixels.setPixelColor(0, pTooCold.GetColor());
+    else if (ValTemp > _TempNeeded + _Tol)
+        pixels.setPixelColor(0, pTooHot.GetColor());
+    else
+        pixels.setPixelColor(0, pOk.GetColor());
+
+
+/*
+    if (ValPower < _ConsoPower - _Tol)
+        pixels.setPixelColor(0, 0x000000);
+    else if (ValPower > _ConsoPower + _Tol)
+        pixels.setPixelColor(0, 0xFFFF00);
+    else
+        pixels.setPixelColor(0, 0x00FF00);
+
+
+    if (ValTemp < _TempNeeded - _Tol)
+        pixels.setPixelColor(1, 0x0000FF);
+    else if (ValTemp > _TempNeeded + _Tol)
+        pixels.setPixelColor(1, 0xFF0000);
+    else
+        pixels.setPixelColor(1, 0x00FF00);
+*/
+
+    pixels.show();
 #ifdef LOG
-   // Serial.printf("Power is %4i and temperature is %4i.\n", ValPower, ValTemp);
+    // Serial.printf("Power is %4i and temperature is %4i.\n", ValPower, ValTemp);
 #endif
 }
 
