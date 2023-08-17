@@ -10,7 +10,7 @@
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-#define STANDALONE
+//#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define MODEL
@@ -38,13 +38,13 @@
 #elif defined(ELECTRICITY)
 #define TYPE "PWR"
 #elif defined(ENERGY)
-#define TYPE ("NRJ_" + std::to_string(NUMBER)).c_str()
+#define TYPE "NRJ;*"
 #elif defined(ENGINE)
 #define TYPE "ENG"
 #elif defined(EXTINGUISHER)
-#define TYPE ("EXT_" + std::to_string(NUMBER)).c_str()
+#define TYPE "EXT;*"
 #elif defined(FIRE)
-#define TYPE ("FIR_" + std::to_string(NUMBER)).c_str()
+#define TYPE "FIR_" + std::to_string(NUMBER)).c_str()
 #elif defined(NAVIGATION)
 #define TYPE "NAV"
 #elif defined(RADAR)

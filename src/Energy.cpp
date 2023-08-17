@@ -257,8 +257,9 @@ void Received()
         comm.add(bttr);
         comm.send();
     }
+    
     // send UID when necessary
-    if (comm.GetCode() == "COM")
+    if (comm.GetCode() == "NFC")
     {
         Read_UID();
 
