@@ -16,13 +16,13 @@
 //#define MODEL
 //#define BREACH
 //#define ELECTRICITY
-//#define ENERGY
+#define ENERGY
 //#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
 //#define NAVIGATION
 //#define RADAR
-#define REACTOR
+//#define REACTOR
 //#define SHIELD
 //#define TORPEDO
 
