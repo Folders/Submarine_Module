@@ -52,7 +52,6 @@ void Read_UID() // convert the UID into String
     array_to_string(rfid.uid.uidByte, 4, UID_str);
     comm.start("NFC;");
     comm.send(UID_str);
-
 }
 
 /// @brief For print the UID into Serial
@@ -99,7 +98,7 @@ bool PICC_IsAnyCardPresent()
 /// @param SetValue New percent value [0..100]
 void Percent_Display(int SetValue)
 {
-    
+
     // Limit input value
     if (SetValue > 100)
         _percent = 100;
@@ -143,7 +142,6 @@ void MySetup()
     // Neopixels setup
     pixels.begin();
     pixels.setBrightness(BRIGHTNESS);
-
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -164,7 +162,7 @@ void ResetModule()
 void MyLoop()
 {
     // read if there is a RFID connection
-    bool cardPresent = PICC_IsAnyCardPresent(); 
+    bool cardPresent = PICC_IsAnyCardPresent();
 
     // Reset the loop if no card was locked an no card is present.
     // This saves the select process when no card is found.
@@ -185,7 +183,7 @@ void MyLoop()
     if (!locked && result == MFRC522::STATUS_OK)
     {
         locked = true;
-        
+
 #ifdef LOG
         Serial.print(F("locked! NUID tag: "));
         printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
@@ -194,15 +192,13 @@ void MyLoop()
         // Read the current UID and send it to server
         Read_UID();
     }
-    
-    
+
     ///////////// Action on card removal ////////////
     else if (locked && result != MFRC522::STATUS_OK)
     {
         locked = false;
         rfid.uid.size = 0;
 
-       
         comm.send("NFC;N"); //
 
 #ifdef LOG
@@ -247,7 +243,7 @@ void Received()
         // Write color
         ESP.deepSleep(0);
     }
-    
+
     // Read the battery level
     if (comm.GetCode() == "BTY")
     {
@@ -260,6 +256,18 @@ void Received()
         comm.start("BTY;");
         comm.add(bttr);
         comm.send();
+    }
+    // send UID when necessary
+    if (comm.GetCode() == "COM")
+    {
+        Read_UID();
+
+#ifdef LOG
+        Serial.print(F("NUID tag: "));
+        printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
+        Serial.println();
+#endif
+
     }
 }
 
