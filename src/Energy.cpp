@@ -198,7 +198,6 @@ void MyLoop()
     {
         locked = false;
         rfid.uid.size = 0;
-
         comm.send("NFC;N"); //
 
 #ifdef LOG
@@ -257,17 +256,31 @@ void Received()
         comm.add(bttr);
         comm.send();
     }
+
     // send UID when necessary
-    if (comm.GetCode() == "COM")
+    if (comm.GetCode() == "NFC")
     {
-        Read_UID();
+        char UID_str[32] = "";
 
+        if (locked == false) // card has been removed, so reset buffer
+        {
+            memset(UID_str, '0', sizeof(UID_str));
+            UID_str[8] = '\0';
+            comm.start("NFC;");
+            comm.send(UID_str);
+        }
+
+        else
+        {
+            array_to_string(rfid.uid.uidByte, 4, UID_str);
+            comm.start("NFC;");
+            comm.send(UID_str);
 #ifdef LOG
-        Serial.print(F("NUID tag: "));
-        printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
-        Serial.println();
+            Serial.print(F("NUID tag: "));
+            printHex(rfid.uid.uidByte, rfid.uid.size); // print the UID into the Serial
+            Serial.println();
 #endif
-
+        }
     }
 }
 
