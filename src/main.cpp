@@ -12,6 +12,7 @@
 
 // Define all system - The used must me define in common.h
 #include <Breach.h>
+#include <Dialogue.h>
 #include <Electricity.h>
 #include <Energy.h>
 #include <Engine.h>
