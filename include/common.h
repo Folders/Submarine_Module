@@ -10,15 +10,15 @@
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-//#define STANDALONE
+#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define MODEL
 //#define BREACH
 //#define ELECTRICITY
-#define ENERGY
+//#define ENERGY
 //#define ENGINE
-//#define EXTINGUISHER
+#define EXTINGUISHER
 //#define FIRE 
 //#define NAVIGATION
 //#define RADAR

@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 //////// Add new include library
-//#include <Wire.h>
-//#include <Adafruit_GFX.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>       //charge the Adafruit_SSD1306 Wemos Mini OLED !
 #include <Bounce2.h>
 #include <Ticker.h>
@@ -13,11 +13,11 @@
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // OLED
-#define OLED_RESET 14
+#define OLED_RESET -1
 Adafruit_SSD1306 display(OLED_RESET);
 
 // IR
-const int LED_IR = 16;
+const int LED_IR = 12;
 
 // Buttons
 #define TRIGGER 0
@@ -312,8 +312,8 @@ void read_buttons()
 void MySetup()
 {
     // set input's IO
-    pinMode(TRIGGER, INPUT);
-    pinMode(CONTACT, INPUT);
+    pinMode(TRIGGER, INPUT_PULLUP);
+    pinMode(CONTACT, INPUT_PULLUP);
     trigger.attach(TRIGGER);
     trigger.interval(5);
     contact.attach(CONTACT);
