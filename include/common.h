@@ -15,8 +15,9 @@
 // Define witch module is used (ONLY ONE)
 //#define MODEL
 //#define BREACH
+#define DIALOGUE
 //#define ELECTRICITY
-#define ENERGY
+//#define ENERGY
 //#define ENGINE
 //#define EXTINGUISHER
 //#define FIRE 
@@ -55,6 +56,8 @@
 #define TYPE "SHI"
 #elif defined(TORPEDO)
 #define TYPE "TRP"
+#elif defined(DIALOGUE)
+#define TYPE "DLG"
 #else
 #error "No module selected!"
 #endif
