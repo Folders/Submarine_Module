@@ -7,6 +7,7 @@
 #include <Wire.h>
 #include <Adafruit_MCP23X17.h>
 #include <Bounce2.h>
+#include <Adafruit_NeoPixel.h>
 
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
 
@@ -34,9 +35,14 @@ Bounce button4 = Bounce();
 #define BUTTON_SKIP D5
 Bounce buttonSKIP = Bounce();
 
+/// NeoPixels setup
+#define LED_DATA D3
+#define BRIGHTNESS 200
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(6, LED_DATA, NEO_GRB + NEO_KHZ800);
+
 ////////  Define global variables
 
-bool choice_made ; 
+bool choice_made; // for reading button while no choice has been made
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -51,43 +57,45 @@ void my_function()
 /// @brief Read interrupts and send comm to server
 void interrupts_read()
 {
-    button1.update();
-    button2.update();
-    button3.update();
-    button4.update();
-    buttonSKIP.update();
-
-    if (button1.fell())
+    if (choice_made == false)
     {
-        comm.send("BTN;0;1");
-        choice_made == true; 
-    }
 
-    if (button2.fell())
-    {
-        comm.send("BTN;1;1");
-         choice_made == true; 
-    }
+        button1.update();
+        button2.update();
+        button3.update();
+        button4.update();
+        buttonSKIP.update();
 
-    if (button3.fell())
-    {
-        comm.send("BTN;2;1");
-         choice_made == true; 
-    }
+        if (button1.fell())
+        {
+            comm.send("BTN;0;1");
+            choice_made = true;
+        }
 
-    if (button4.fell())
-    {
-        comm.send("BTN;3;1");
-         choice_made == true; 
-    }
+        if (button2.fell())
+        {
+            comm.send("BTN;1;1");
+            choice_made = true;
+        }
 
-    if (buttonSKIP.fell())
-    {
-        comm.send("BTN;4;1");
-         choice_made == true; 
-    }
+        if (button3.fell())
+        {
+            comm.send("BTN;2;1");
+            choice_made = true;
+        }
 
-    // important de continuer à lire jusqu'à ce qu'un bouton soit pressé !
+        if (button4.fell())
+        {
+            comm.send("BTN;3;1");
+            choice_made = true;
+        }
+
+        if (buttonSKIP.fell())
+        {
+            comm.send("BTN;4;1");
+            choice_made = true;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,9 +135,15 @@ void MySetup()
     button4.interval(5);
 
     // initialise SKIP button
-    pinMode(BUTTON_SKIP, INPUT_PULLUP);
+    pinMode(BUTTON_SKIP, INPUT); // or pinMode(BUTTON_SKIP, INPUT_PULLUP); if there isn't any pullup inside button
     buttonSKIP.attach(BUTTON_SKIP);
     buttonSKIP.interval(5);
+
+    // Neo pixels
+    pixels.begin();
+    pixels.setBrightness(BRIGHTNESS);
+    pixels.clear();
+    pixels.show();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -167,6 +181,32 @@ void Received()
         // If you want to read one parameter, you can use the function comm.GetParameter(x)
         Serial.println("Value of parameter 1 :");
         Serial.println(comm.GetParameter(1));
+    }
+
+    if (comm.GetCode() == "TXT")
+    {
+        choice_made == 0;
+
+        if (choice_made == 0)
+        {
+            // LCD1.println(comm.GetParameter(1))        //print first parameter on LCD1
+            // pixels.setPixelColor(1, pixels.Color(comm.GetParameter(2);));     //change color of button LED
+            // change LCD1 color with GetParameter(2)
+
+            //[...] do the same for the 4 LCD, 5 buttons and 4 LCD colors
+            // pixels.setPixelColor(5, pixels.Color(comm.GetParameter(9);));     //change color of SKIPbutton LED
+
+            pixels.show();
+            interrupts_read();
+        }
+
+        if (choice_made == 1)
+        {
+            pixels.clear(); // turn of leds
+            pixels.show();
+
+            // turn of LCD
+        }
     }
 }
 
