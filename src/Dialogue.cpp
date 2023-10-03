@@ -4,36 +4,39 @@
 #include <Arduino.h>
 
 //////// Add new include library
-#include <LOLIN_EPD.h>
-#include <Adafruit_GFX.h>
+#include <Wire.h>
+#include <Adafruit_MCP23X17.h>
+#include <Bounce2.h>
 
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
-// const int TEST_IN = 10;
-// const int TEST_OUT = 11;
 
-/*D1 mini*/
-#define EPD_CS D0
-#define EPD_DC D3
-#define EPD_RST -1  // can set to -1 and share with microcontroller Reset!
-#define EPD_BUSY -1 // can set to -1 to not use a pin (will wait a fixed delay)
+/// MCP23017 setup///
 
-/*D32 Pro*/
-// #define EPD_CS 14
-// #define EPD_DC 27
-// #define EPD_RST 33  // can set to -1 and share with microcontroller Reset!
-// #define EPD_BUSY -1 // can set to -1 to not use a pin (will wait a fixed delay)
+// MCP23017 I2C Adresses
+#define MCP23017_ADDRESS1 0x20
+#define MCP23017_ADDRESS2 0x21
+#define MCP23017_ADDRESS3 0x22
+#define MCP23017_ADDRESS4 0x23
 
-LOLIN_SSD1680 EPD(250, 122, EPD_DC, EPD_RST, EPD_CS, EPD_BUSY); //hardware SPI
+Adafruit_MCP23X17 mcp1;
+Adafruit_MCP23X17 mcp2;
+Adafruit_MCP23X17 mcp3;
+Adafruit_MCP23X17 mcp4;
 
-// #define EPD_MOSI D7
-// #define EPD_CLK D5
-// LOLIN_SSD1680 EPD(250,122, EPD_MOSI, EPD_CLK, EPD_DC, EPD_RST, EPD_CS, EPD_BUSY); //IO
+/// button setup///
 
+// Create Bounce objects for each button
+Bounce button1 = Bounce();
+Bounce button2 = Bounce();
+Bounce button3 = Bounce();
+Bounce button4 = Bounce();
+
+#define BUTTON_SKIP D5
+Bounce buttonSKIP = Bounce();
 
 ////////  Define global variables
-int _testInt = 0;
-bool _testBool = 0;
 
+bool choice_made ; 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -45,6 +48,47 @@ void my_function()
     // ...
 }
 
+/// @brief Read interrupts and send comm to server
+void interrupts_read()
+{
+    button1.update();
+    button2.update();
+    button3.update();
+    button4.update();
+    buttonSKIP.update();
+
+    if (button1.fell())
+    {
+        comm.send("BTN;0;1");
+        choice_made == true; 
+    }
+
+    if (button2.fell())
+    {
+        comm.send("BTN;1;1");
+         choice_made == true; 
+    }
+
+    if (button3.fell())
+    {
+        comm.send("BTN;2;1");
+         choice_made == true; 
+    }
+
+    if (button4.fell())
+    {
+        comm.send("BTN;3;1");
+         choice_made == true; 
+    }
+
+    if (buttonSKIP.fell())
+    {
+        comm.send("BTN;4;1");
+         choice_made == true; 
+    }
+
+    // important de continuer à lire jusqu'à ce qu'un bouton soit pressé !
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
@@ -53,29 +97,40 @@ void my_function()
 /// @brief Setup function for the module
 void MySetup()
 {
-    // Suround every "Serial" order between "#ifdef LOG" and "#endif"
-    #ifdef LOG
+// Suround every "Serial" order between "#ifdef LOG" and "#endif"
+#ifdef LOG
     Serial.println("--- Model ---");
-    #endif
+#endif
 
-        EPD.begin();
+    // Initialize I2C communication
+    Wire.begin();
 
-    EPD.setRotation(0);
-    EPD.clearBuffer();
-    EPD.setTextSize(1);
-    EPD.setTextColor(EPD_BLACK);
-    EPD.setCursor(0,0);
-    EPD.println("hello world! Welcome to wemos.cc, this is test for long text.");
+    // Initialize MCP23017s
+    mcp1.begin_I2C(MCP23017_ADDRESS1);
+    mcp2.begin_I2C(MCP23017_ADDRESS2);
+    mcp3.begin_I2C(MCP23017_ADDRESS3);
+    mcp4.begin_I2C(MCP23017_ADDRESS4);
 
-    EPD.setTextColor(EPD_RED);
-    EPD.setTextSize(2);
-    EPD.println("I'm red!");
+    // Configure GPA0 pins of MCP23017s as inputs
+    mcp1.pinMode(0, INPUT);
+    mcp2.pinMode(0, INPUT);
+    mcp3.pinMode(0, INPUT);
+    mcp4.pinMode(0, INPUT);
 
-    EPD.display();
+    button1.attach(mcp1.readGPIOAB(), 0);
+    button1.interval(5);
+    button2.attach(mcp2.readGPIOAB(), 0);
+    button2.interval(5);
+    button3.attach(mcp3.readGPIOAB(), 0);
+    button3.interval(5);
+    button4.attach(mcp4.readGPIOAB(), 0);
+    button4.interval(5);
 
-    EPD.deepSleep();
+    // initialise SKIP button
+    pinMode(BUTTON_SKIP, INPUT_PULLUP);
+    buttonSKIP.attach(BUTTON_SKIP);
+    buttonSKIP.interval(5);
 }
-
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
 
@@ -84,23 +139,12 @@ void ResetModule()
 {
 }
 
-
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    // To send datas to the server, use the send function
-    comm.send("LED;R;1");
-
-    // It's possible to send with more then on line
-    comm.start();      // Open the buffer
-    comm.add("LED");   // Write String
-    comm.add(';');     // Add char
-    // comm.add(testInt); // Add from variable
-    comm.send();       // Send concatened variable
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Communication                                      //
