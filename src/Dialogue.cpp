@@ -6,10 +6,19 @@
 //////// Add new include library
 #include <LOLIN_EPD.h>
 #include <Adafruit_GFX.h>
+#include <Wire.h>
+#include <LiquidTWI2.h>
 
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
-// const int TEST_IN = 10;
-// const int TEST_OUT = 11;
+#define C_BLACK 0x0
+#define C_RED 0x1
+#define C_YELLOW 0x3
+#define C_GREEN 0x2
+#define C_TEAL 0x6
+#define C_BLUE 0x4
+#define C_VIOLET 0x5
+#define C_WHITE 0x7
+
 
 /*D1 mini*/
 #define EPD_CS D0
@@ -28,6 +37,12 @@ LOLIN_SSD1680 EPD(250, 122, EPD_DC, EPD_RST, EPD_CS, EPD_BUSY); //hardware SPI
 // #define EPD_MOSI D7
 // #define EPD_CLK D5
 // LOLIN_SSD1680 EPD(250,122, EPD_MOSI, EPD_CLK, EPD_DC, EPD_RST, EPD_CS, EPD_BUSY); //IO
+
+// Connect via i2c, address 0x20 (A0-A2 not jumpered)
+LiquidTWI2 LCD_1(0x00);
+LiquidTWI2 LCD_2(0x01);
+LiquidTWI2 LCD_3(0x02);
+LiquidTWI2 LCD_4(0x03);
 
 
 ////////  Define global variables
@@ -58,7 +73,8 @@ void MySetup()
     Serial.println("--- Model ---");
     #endif
 
-        EPD.begin();
+    /*
+    EPD.begin();
 
     EPD.setRotation(0);
     EPD.clearBuffer();
@@ -74,6 +90,40 @@ void MySetup()
     EPD.display();
 
     EPD.deepSleep();
+    */
+
+    // set the LCD type
+    LCD_1.setMCPType(LTI_TYPE_MCP23017); 
+    // set up the LCD's number of rows and columns:
+    LCD_1.begin(16, 2);
+    // Print a message to the LCD.
+    LCD_1.print("Screen 1");
+    
+    // set the LCD type
+    LCD_2.setMCPType(LTI_TYPE_MCP23017); 
+    // set up the LCD's number of rows and columns:
+    LCD_2.begin(16, 2);
+    // Print a message to the LCD.
+    LCD_2.print("Screen 2");
+    
+    // set the LCD type
+    LCD_3.setMCPType(LTI_TYPE_MCP23017); 
+    // set up the LCD's number of rows and columns:
+    LCD_3.begin(16, 2);
+    // Print a message to the LCD.
+    LCD_3.print("Screen 3");
+    
+    // set the LCD type
+    LCD_4.setMCPType(LTI_TYPE_MCP23017); 
+    // set up the LCD's number of rows and columns:
+    LCD_4.begin(16, 2);
+    // Print a message to the LCD.
+    LCD_4.print("Screen 4");
+
+    LCD_1.setBacklight(C_RED);
+    LCD_2.setBacklight(C_GREEN);
+    LCD_3.setBacklight(C_BLUE);
+    LCD_4.setBacklight(C_YELLOW);
 }
 
 
