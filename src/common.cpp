@@ -467,7 +467,6 @@ Analog::Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, u
      _SetMap(in_Min, in_Max, out_Min, out_Max);
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                          Pixel                                          //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -515,8 +514,7 @@ Pixel::Pixel(uint32_t color)
      this->Blue = (uint8_t)(color);
 }
 
-
-     ///////////////////////////   Brightness   ///////////////////////////
+///////////////////////////   Brightness   ///////////////////////////
 
 /// @brief Set the brightness of the pixel
 /// @param brightness 0= Full ligne (disabled), 1= lower light, 255 = almost max.
@@ -550,8 +548,7 @@ void Pixel::SetBrightness(float brightness)
      }
 }
 
-
-     ///////////////////////////   Get color   ///////////////////////////
+///////////////////////////   Get color   ///////////////////////////
 
 /// @brief Return current color of the pixel (with brightness)
 /// @return Current red value (0..255)
@@ -613,17 +610,17 @@ uint32_t Pixel::GetColor()
      {
           // Compute packed level with brightness
           if (_brightness)
-               return    (((uint32_t)(Red << 8) / _brightness) << 16) |
-                         (((uint32_t)(Green << 8) / _brightness) << 8) | 
-                         ((uint32_t)(Blue << 8) / _brightness);
+               return (((uint32_t)(Red << 8) / _brightness) << 16) |
+                      (((uint32_t)(Green << 8) / _brightness) << 8) |
+                      ((uint32_t)(Blue << 8) / _brightness);
           else
                return ((uint32_t)Red << 16) | ((uint32_t)Green << 8) | (uint32_t)Blue;
      }
      else
-          return 0;    
+          return 0;
 }
 
-     ///////////////////////////   Color update   ///////////////////////////
+///////////////////////////   Color update   ///////////////////////////
 
 /// @brief Update color of the pixel
 /// @param newColor New pixel color
@@ -652,4 +649,73 @@ void Pixel::SetColor(uint32_t newColor)
      this->Red = (uint8_t)(newColor >> 16);
      this->Green = (uint8_t)(newColor >> 8);
      this->Blue = (uint8_t)(newColor);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//                                     Neopixel manager                                    //
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////   Constructor   ///////////////////////////
+
+/// @brief Create a pixel object
+MyPixels::MyPixels()
+{
+     this->_numLEDs = 0;
+     this->_asInfo = false;
+}
+
+/// @brief Create a pixel object
+void MyPixels::useInfoPixel()
+{
+     // Add the number of pixel
+     this->_numLEDs = this->_numLEDs + 1;
+
+     // and save the info pixel used
+     this->_asInfo = true;
+}
+
+/// @brief Add a number of led to control
+/// @param number Number of led in the project
+void MyPixels::addLeds(int number)
+{
+     // Add the number of pixel
+     this->_numLEDs = this->_numLEDs + number;
+}
+
+/// @brief Initalize the leds controler. Do not used, already done in master
+void MyPixels::initalize()
+{
+     
+     this->_leds = new CRGB[_numLEDs];
+     
+     //FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
+     FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
+}
+
+/// @brief Update pixel output
+void MyPixels::show()
+{
+     FastLED.show();
+}
+
+/// @brief Update pixel output
+void MyPixels::update()
+{
+     if (this->_updateRequest)
+     {
+          FastLED.show();
+          _updateRequest = false;
+     }
+
+}
+
+
+void MyPixels::setPixelColor(int index, const CRGB& newColor)
+{
+     // Vérifier que l'index est valide
+     if (index >= 0 && index < this->_numLEDs) {
+          this->_leds[index] = newColor;
+     }
+
+     _updateRequest = true;
 }

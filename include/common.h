@@ -5,12 +5,13 @@
 #include <string>
 #include <vector>
 #include <WiFiUDP.h>
+#include <FastLED.h>
 
 // Enabled all serial communication (put in comment to disabled log mode)
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-//#define STANDALONE
+#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define MODEL
@@ -217,6 +218,54 @@ public:
     /// @brief Send to serial datas received
     void Info_Received();
 };
+
+
+
+/// @brief Pixel management
+class MyPixels
+{
+private:
+
+    /// @brief Array of leds 
+    CRGB* _leds;
+
+    /// @brief Number of leds
+    int _numLEDs;
+
+    /// @brief Output to control the leds (default = 0)
+    int _output;
+
+    /// @brief If the led is one
+    bool _asInfo = false;
+
+    /// @brief An update is requered
+    bool _updateRequest = false;
+    
+public:
+    /// @brief Create a pixels manager object
+    MyPixels();
+
+    /// @brief Use the first pixel as status info
+    void useInfoPixel();
+
+    /// @brief Add a number of led to control
+    /// @param number Number of led in the project
+    void addLeds(int number);
+
+    /// @brief Initalize the leds controler. Do not used, already done in master
+    void initalize();
+
+    void show();
+
+    void update();
+    
+    void setPixelColor(int index, const CRGB& newColor);
+
+
+
+
+};
+
 
 /// @brief Pixel management
 class Pixel
