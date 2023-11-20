@@ -239,7 +239,7 @@ private:
     bool _asInfo = false;
 
     /// @brief An update is requered
-    bool _updateRequest = false;
+    bool _updateRequest;
     
 public:
     /// @brief Create a pixels manager object
@@ -413,6 +413,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 extern MyComm comm;
+
+extern MyPixels pixels;
+
 
 #ifndef STANDALONE
 extern IPAddress Dest;

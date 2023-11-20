@@ -30,6 +30,9 @@
 /// @brief Communication object
 MyComm comm;
 
+/// @brief Pixels object
+MyPixels pixels;
+
 /// @brief Serial input string buffer
 String InputBuffer;
 
@@ -194,9 +197,6 @@ void WifiLevel()
 
 #endif
 
-// TMP
-//Pixel pTest(14)
-Pixel test(123,11,11);
 
 ////////////////////////////////////////   SETUP   ////////////////////////////////////////
 void setup()
@@ -390,4 +390,6 @@ void loop()
 
     // Call user loop
     MyLoop();
+
+    pixels.update();
 }

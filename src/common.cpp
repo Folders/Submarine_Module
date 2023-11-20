@@ -695,16 +695,24 @@ void MyPixels::initalize()
 /// @brief Update pixel output
 void MyPixels::show()
 {
+
      FastLED.show();
 }
 
 /// @brief Update pixel output
 void MyPixels::update()
 {
+
      if (this->_updateRequest)
      {
+               
+          #ifdef LOG
+          // Log send text
+          Serial.println("LED - Update is done");
+          #endif
+
           FastLED.show();
-          _updateRequest = false;
+          this->_updateRequest = false;
      }
 
 }
@@ -714,8 +722,17 @@ void MyPixels::setPixelColor(int index, const CRGB& newColor)
 {
      // Vérifier que l'index est valide
      if (index >= 0 && index < this->_numLEDs) {
-          this->_leds[index] = newColor;
-     }
+          // If the color change
+          if (this->_leds[index] != newColor)
+          {
+               // Update the colors
+               this->_leds[index] = newColor;
+               this->_updateRequest = true;
 
-     _updateRequest = true;
+               #ifdef LOG
+               // Log send text
+               Serial.println("LED - Update with new color ");
+               #endif
+          }
+     }
 }

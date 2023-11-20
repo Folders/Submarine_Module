@@ -53,7 +53,6 @@ LiquidTWI2 LCD_2(0x01);
 LiquidTWI2 LCD_3(0x02);
 LiquidTWI2 LCD_4(0x03);
 
-MyPixels pixels;
 
 ////////  Define global variables
 int _testInt = 0;
@@ -265,7 +264,7 @@ void Received()
         }
 
         // Update pixels
-        pixels.show();
+        //pixels.show();
     }
     
 }
