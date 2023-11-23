@@ -220,6 +220,32 @@ public:
 };
 
 
+class Variator
+{
+public:
+    Variator(int index, const CRGB& colorStart, const CRGB& colorEnd)
+        : _index(index), _colorStart(colorStart), _colorEnd(colorEnd) {}
+
+    void update(CRGB* leds, float ratio)
+    {
+        // Interpolation linéaire entre les deux couleurs
+        CRGB couleurInterpolee = blend(_colorStart, _colorEnd, ratio);
+
+        // Mettre à jour la couleur de la LED
+        leds[_index] = couleurInterpolee;
+    }
+
+    int const getIndex()
+    {
+        return _index;
+    }
+
+private:
+    int _index;
+    CRGB _colorStart;
+    CRGB _colorEnd;
+};
+
 
 /// @brief Pixel management
 class MyPixels
@@ -241,6 +267,16 @@ private:
     /// @brief An update is requered
     bool _updateRequest;
     
+    float _ratio;
+
+    bool _ratioDown = false;
+
+    /// @brief Add variator object
+    std::vector<Variator> _variators;
+
+
+    bool _asVariator(int index);
+
 public:
     /// @brief Create a pixels manager object
     MyPixels();
@@ -262,9 +298,15 @@ public:
     void setPixelColor(int index, const CRGB& newColor);
 
 
+    void addVariator(int index, const CRGB& colorStart, const CRGB& colorEnd);
+
+
+    void deleteVariator(int index);
 
 
 };
+
+
 
 
 /// @brief Pixel management
@@ -277,6 +319,7 @@ private:
 
     /// @brief Current brigntness of the pixel, 0 is disabled, 1 is min and 255 is max.
     uint8_t _brightness = 0;
+
 
 public:
     /// @brief Create a pixel object

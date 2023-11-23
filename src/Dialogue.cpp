@@ -154,10 +154,16 @@ void ResetModule()
     // Test pixel colors
     pixels.setPixelColor(0, CRGB::Purple);
     pixels.setPixelColor(1, CRGB::Red);
-    pixels.setPixelColor(2, CRGB::Green);
+    //pixels.setPixelColor(2, CRGB::Green);
     pixels.setPixelColor(3, CRGB::Blue);
-    pixels.setPixelColor(4, CRGB::Purple);
+    //pixels.setPixelColor(4, CRGB::Purple);
 
+
+    // Utilisation de la classe MyPixels avec ajout de variateurs
+    pixels.addVariator(1, CRGB::Blue, CRGB::BlueViolet);
+    pixels.addVariator(2, CRGB::Red, CRGB::Black);
+    pixels.addVariator(3, CRGB::Green, CRGB::Black);
+    pixels.addVariator(4, CRGB::Blue, CRGB::Black);
 
     #endif
 
@@ -247,6 +253,18 @@ void Received()
 
             case 'B':
                 pixels.setPixelColor(i, CRGB(0, 0, 255)); // turn led blue
+                break;
+                
+            case 'r':
+                pixels.addVariator(i, CRGB::Red, CRGB::Black);
+                break;
+
+            case 'g':
+                pixels.addVariator(i, CRGB::Green, CRGB::Black);
+                break;
+
+            case 'b':
+                pixels.addVariator(i, CRGB::Blue, CRGB::Black);
                 break;
             }
         }

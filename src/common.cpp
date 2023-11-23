@@ -715,13 +715,55 @@ void MyPixels::update()
           this->_updateRequest = false;
      }
 
+
+     if (_variators.size() > 0)
+     {
+          // Update ratio
+          if (_ratioDown)
+          {
+               _ratio -= 0.5;
+
+               if (_ratio < 0.0)
+               {
+                    _ratio = 0;
+                    _ratioDown = false;
+               }
+          }
+          else
+          {
+               _ratio += 0.5;
+
+               if (_ratio > 255)
+               {
+                    _ratio = 255;
+                    _ratioDown = true;
+               }
+          }
+
+          // Update ratio value
+          for (auto& variateur : _variators)
+          {
+               variateur.update(_leds, _ratio);
+          }
+
+          // Update button
+          FastLED.show();
+     }
+
 }
 
 
 void MyPixels::setPixelColor(int index, const CRGB& newColor)
 {
      // Vérifier que l'index est valide
-     if (index >= 0 && index < this->_numLEDs) {
+     if (index >= 0 && index < this->_numLEDs)
+     {
+          // Check if the pixel as variator
+          if (_asVariator(index))
+          {
+               deleteVariator(index);
+          }
+
           // If the color change
           if (this->_leds[index] != newColor)
           {
@@ -736,3 +778,44 @@ void MyPixels::setPixelColor(int index, const CRGB& newColor)
           }
      }
 }
+
+
+
+void MyPixels::addVariator(int index, const CRGB& colorStart, const CRGB& colorEnd)
+{
+     _variators.push_back(Variator(index, colorStart, colorEnd));
+}
+
+
+void MyPixels::deleteVariator(int index)
+{
+
+    auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index]( Variator& v) {
+        if (v.getIndex() == index) {
+            //setPixelColor(v.index, CRGB::Black); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
+            return true;
+        }
+        return false;
+    });
+
+    _variators.erase(it, _variators.end());
+}
+
+
+bool MyPixels::_asVariator(int index) 
+{
+     if (_variators.size() == 0)
+          return false;
+
+     // Update ratio value
+     for (auto& variateur : _variators)
+     {
+          if (variateur.getIndex() == index)
+          {
+               return true;
+          }
+     }
+     
+     return false;
+}
+
