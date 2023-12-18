@@ -4,21 +4,21 @@
 #include <Arduino.h>
 
 //////// Add new include library
-//#include <LOLIN_EPD.h>
+// #include <LOLIN_EPD.h>
 #include <Adafruit_GFX.h>
 #include <Wire.h>
-#include <LiquidTWI2.h>             // Library for I2C LCD screen
-//#include <Adafruit_NeoPixel.h>      // Library for NeoPixel
-#include<FastLED.h> // header file
+#include <LiquidTWI2.h> // Library for I2C LCD screen
+// #include <Adafruit_NeoPixel.h>      // Library for NeoPixel
+#include <FastLED.h> // header file
 
 ////////  Define global constantes (ALWAYS IN MAJ, use pin number and not name)
 #define C_BLACK 0x0
-#define C_RED 0x2       // Inverted with green !    0x1 -> 0x2
+#define C_RED 0x2 // Inverted with green !    0x1 -> 0x2
 #define C_YELLOW 0x3
-#define C_GREEN 0x1     // Inverted with red !      0x2 -> 0x1
-#define C_TEAL 0x5      // Inverted with red-green  0x6 -> 0x5
+#define C_GREEN 0x1 // Inverted with red !      0x2 -> 0x1
+#define C_TEAL 0x5  // Inverted with red-green  0x6 -> 0x5
 #define C_BLUE 0x4
-#define C_VIOLET 0x6    // Inverted with red-green  0x5 -> 0x6
+#define C_VIOLET 0x6 // Inverted with red-green  0x5 -> 0x6
 #define C_WHITE 0x7
 
 /*          TEST FOR E ink screen
@@ -38,7 +38,6 @@
 LOLIN_SSD1680 EPD(250, 122, EPD_DC, EPD_RST, EPD_CS, EPD_BUSY); //hardware SPI for E ink screen
 */
 
-
 #define NB_INPUT 5
 
 /*// Neopixels setup
@@ -53,22 +52,107 @@ LiquidTWI2 LCD_2(0x01);
 LiquidTWI2 LCD_3(0x02);
 LiquidTWI2 LCD_4(0x03);
 
-
 ////////  Define global variables
-int _testInt = 0;
-bool _testBool = 0;
-
+bool buttonUsed[5];
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-void my_function()
+/// @brief Write a message on a LCD
+/// @param lcd Destination LCD
+/// @param l1 First line of text
+/// @param l2 Second line of text
+/// @param color Color of background (on char in maj)
+void writeText(LiquidTWI2 &lcd, const char *l1, const char *l2, char color)
 {
-    // ...
+    // Effacer l'écran
+    lcd.clear();
+
+    // Écrire sur la première ligne
+    lcd.setCursor(0, 0);
+    lcd.print(l1);
+
+    // Écrire sur la deuxième ligne
+    lcd.setCursor(0, 1);
+    lcd.print(l2);
+
+    // Chagement de la couleur
+    switch (color)
+    {
+    case 'R': // Rouge
+        lcd.setBacklight(C_RED);
+        break;
+    case 'Y': // Jaune
+        lcd.setBacklight(C_YELLOW);
+        break;
+    case 'G': // Vert
+        lcd.setBacklight(C_GREEN);
+        break;
+    case 'T': // Bleu claire
+        lcd.setBacklight(C_TEAL);
+        break;
+    case 'B': // Blue
+        lcd.setBacklight(C_BLUE);
+        break;
+    case 'V': // Violet
+        lcd.setBacklight(C_VIOLET);
+        break;
+    case 'W': // Blanc
+        lcd.setBacklight(C_WHITE);
+        break;
+    case '0': // No update
+        lcd.setBacklight(C_BLACK);
+        break;
+    case 'N': // No update
+        break;
+    }
 }
 
+
+void buttonColor(int ind, char color)
+{
+    // Exit of parameter are not OK
+    if (ind == 0 || ind > 4)
+        return;
+
+    // Set as used the current button
+    buttonUsed[ind]= true;
+
+    // Chagement de la couleur
+    switch (color)
+    {
+    case 'R': // Rouge
+        pixels.addVariator(ind, CRGB::Red, CRGB::Black);
+        break;
+    case 'Y': // Jaune
+        pixels.addVariator(ind, CRGB::Yellow, CRGB::Black);
+        break;
+    case 'G': // Vert
+        pixels.addVariator(ind, CRGB::Green, CRGB::Black);
+        break;
+    case 'T': // Bleu claire
+        pixels.addVariator(ind, CRGB::Teal, CRGB::Black);
+        break;
+    case 'B': // Blue
+        pixels.addVariator(ind, CRGB::Blue, CRGB::Black);
+        break;
+    case 'V': // Violet
+        pixels.addVariator(ind, CRGB::Violet, CRGB::Black);
+        break;
+    case 'W': // Blanc
+        pixels.addVariator(ind, CRGB::White, CRGB::Black);
+        break;
+    case '0': // Turn off
+        pixels.setPixelColor(ind, CRGB::Black);
+
+        // The button is not used
+        buttonUsed[ind]= false;
+        break;
+    case 'N': // No update
+        break;
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
@@ -77,42 +161,22 @@ void my_function()
 /// @brief Setup function for the module
 void MySetup()
 {
-    // Suround every "Serial" order between "#ifdef LOG" and "#endif"
-    #ifdef LOG
-    Serial.println("--- Model ---");
-    #endif
-
-    /*
-    EPD.begin();
-
-    EPD.setRotation(0);
-    EPD.clearBuffer();
-    EPD.setTextSize(1);
-    EPD.setTextColor(EPD_BLACK);
-    EPD.setCursor(0,0);
-    EPD.println("hello world! Welcome to wemos.cc, this is test for long text.");
-
-    EPD.setTextColor(EPD_RED);
-    EPD.setTextSize(2);
-    EPD.println("I'm red!");
-
-    EPD.display();
-
-    EPD.deepSleep();
-    */
+// Suround every "Serial" order between "#ifdef LOG" and "#endif"
+#ifdef LOG
+    Serial.println("--- Dialogue ---");
+#endif
 
     // set the LCD type
-    LCD_1.setMCPType(LTI_TYPE_MCP23017); 
-    LCD_2.setMCPType(LTI_TYPE_MCP23017); 
-    LCD_3.setMCPType(LTI_TYPE_MCP23017); 
-    LCD_4.setMCPType(LTI_TYPE_MCP23017); 
+    LCD_1.setMCPType(LTI_TYPE_MCP23017);
+    LCD_2.setMCPType(LTI_TYPE_MCP23017);
+    LCD_3.setMCPType(LTI_TYPE_MCP23017);
+    LCD_4.setMCPType(LTI_TYPE_MCP23017);
 
     // set up the LCD's number of rows and columns:
     LCD_1.begin(16, 2);
     LCD_2.begin(16, 2);
     LCD_3.begin(16, 2);
     LCD_4.begin(16, 2);
-
 
     // Define pixels property
     pixels.useInfoPixel();
@@ -128,9 +192,7 @@ void MySetup()
     pixels.setPixelColor(3, pixels.Color(0, 0, 255)); // turn led red
     pixels.show();
     */
-
 }
-
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
 
@@ -138,67 +200,79 @@ void MySetup()
 void ResetModule()
 {
 
-    #ifdef STANDALONE
-    // Set a debug text
-    LCD_1.print("Screen 1");
-    LCD_2.print("Screen 2");
-    LCD_3.print("Screen 3");
-    LCD_4.print("Screen 4");
+#ifdef STANDALONE
 
-    // Set debug background
-    LCD_1.setBacklight(C_RED);
-    LCD_2.setBacklight(C_GREEN);
-    LCD_3.setBacklight(C_BLUE);
-    LCD_4.setBacklight(C_VIOLET);
+    // Set a debug text
+    writeText(LCD_1, "Screen 1", "", 'R');
+    writeText(LCD_2, "Screen 2", "", 'G');
+    writeText(LCD_3, "Screen 3", "", 'B');
+    writeText(LCD_4, "Screen 4", "", 'Y');
 
     // Test pixel colors
     pixels.setPixelColor(0, CRGB::Purple);
-    pixels.setPixelColor(1, CRGB::Red);
-    //pixels.setPixelColor(2, CRGB::Green);
-    pixels.setPixelColor(3, CRGB::Blue);
-    //pixels.setPixelColor(4, CRGB::Purple);
 
+    // Test variator
+    pixels.addVariator(1, CRGB::Red, CRGB::Black);
+    pixels.addVariator(2, CRGB::Green, CRGB::Black);
+    pixels.addVariator(3, CRGB::Blue, CRGB::Black);
+    pixels.addVariator(4, CRGB::Yellow, CRGB::Black);
+    pixels.addVariator(5, CRGB::Blue, CRGB::BlueViolet);
 
-    // Utilisation de la classe MyPixels avec ajout de variateurs
-    pixels.addVariator(1, CRGB::Blue, CRGB::BlueViolet);
-    pixels.addVariator(2, CRGB::Red, CRGB::Black);
-    pixels.addVariator(3, CRGB::Green, CRGB::Black);
-    pixels.addVariator(4, CRGB::Blue, CRGB::Black);
+#else
+    // Clear text
+    LCD_1.clear();
+    LCD_2.clear();
+    LCD_3.clear();
+    LCD_4.clear();
 
-    #endif
+    // Set debug background
+    LCD_1.setBacklight(C_BLACK);
+    LCD_2.setBacklight(C_BLACK);
+    LCD_3.setBacklight(C_BLACK);
+    LCD_4.setBacklight(C_BLACK);
 
+    // Test pixel colors
+    pixels.setPixelColor(1, CRGB::Black);
+    pixels.setPixelColor(2, CRGB::Black);
+    pixels.setPixelColor(3, CRGB::Black);
+    pixels.setPixelColor(4, CRGB::Black);
+    pixels.setPixelColor(5, CRGB::Black);
+#endif
 }
-
 
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 
-uint8_t btn1_backup;
+uint8_t buttons, btn1_backup;
 
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    
-    uint8_t buttons = LCD_1.readButtons();
-    //Serial.println(buttons);
+
+    buttons = LCD_1.readButtons();
+    /*Serial.print(buttons);
+    buttons = LCD_2.readButtons();
+    Serial.print(buttons);
+    buttons = LCD_3.readButtons();
+    Serial.print(buttons);
+    buttons = LCD_4.readButtons();
+    Serial.println(buttons);*/
 
     if (buttons != btn1_backup)
     {
-        if (buttons & BUTTON_SELECT) 
+        if (buttons & BUTTON_SELECT)
         {
-        LCD_1.setBacklight(VIOLET);
+            LCD_1.setBacklight(C_VIOLET);
         }
         else
         {
-          LCD_1.setBacklight(GREEN);
+            LCD_1.setBacklight(C_GREEN);
         }
 
         btn1_backup = buttons;
     }
- 
-    
+
     pixels.update();
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Communication                                      //
@@ -223,12 +297,79 @@ void Received()
         Serial.println(comm.GetParameter(1));
     }
 
-    
+    // The get the received code, use the function GetCode()
+    if (comm.GetCode() == "TXT")
+    {
+        // Get the number of parameter
+        int  i =  comm.GetSize();
+
+        //  Write LCD 1
+        if (i >= 3)
+        {
+            // Write in first LCD
+            writeText(LCD_1, comm.GetParameterInChar(1), comm.GetParameterInChar(2), comm.GetParameterInChar(3)[0]);
+            buttonColor(1, comm.GetParameterInChar(3)[0]);
+        }
+        else
+        {
+            // Clear LCD if not used
+            LCD_1.clear();
+            LCD_1.setBacklight(C_BLACK);
+            buttonColor(1, '0');
+        }
+
+        //  Write LCD 2
+        if (i >= 6)
+        {
+            // Write in first LCD
+            writeText(LCD_2, comm.GetParameterInChar(4), comm.GetParameterInChar(5), comm.GetParameterInChar(6)[0]);
+            buttonColor(2, comm.GetParameterInChar(6)[0]);
+        }
+        else
+        {
+            // Clear LCD if not used
+            LCD_2.clear();
+            LCD_2.setBacklight(C_BLACK);
+            buttonColor(2, '0');
+        }
+        
+        //  Write LCD 3
+        if (i >= 9)
+        {
+            // Write in first LCD
+            writeText(LCD_3, comm.GetParameterInChar(7), comm.GetParameterInChar(8), comm.GetParameterInChar(9)[0]);
+            buttonColor(3, comm.GetParameterInChar(9)[0]);
+        }
+        else
+        {
+            // Clear LCD if not used
+            LCD_3.clear();
+            LCD_3.setBacklight(C_BLACK);
+            buttonColor(3, '0');
+        }
+
+        //  Write LCD 4
+        if (i >= 12)
+        {
+            // Write in first LCD
+            writeText(LCD_4, comm.GetParameterInChar(10), comm.GetParameterInChar(11), comm.GetParameterInChar(12)[0]);
+            buttonColor(4, comm.GetParameterInChar(12)[0]);
+        }
+        else
+        {
+            // Clear LCD if not used
+            LCD_4.clear();
+            LCD_4.setBacklight(C_BLACK);
+            buttonColor(4, '0');
+        }
+        
+    }
+
     // The get the received code, use the function GetCode()
     if (comm.GetCode() == "LED")
     {
         // Get index of light
-        int i = comm.GetParameter(1).toInt() - 1;
+        int i = comm.GetParameter(1).toInt();
 
         // Check if index is in range
         if (i < 0 || i >= NB_INPUT)
@@ -240,7 +381,7 @@ void Received()
             switch (comm.GetParameter(2)[0])
             {
             case '0':
-                pixels.setPixelColor(i, CRGB::Black ); // turn led OFF
+                pixels.setPixelColor(i, CRGB::Black); // turn led OFF
                 break;
 
             case 'R':
@@ -254,7 +395,7 @@ void Received()
             case 'B':
                 pixels.setPixelColor(i, CRGB(0, 0, 255)); // turn led blue
                 break;
-                
+
             case 'r':
                 pixels.addVariator(i, CRGB::Red, CRGB::Black);
                 break;
@@ -282,9 +423,8 @@ void Received()
         }
 
         // Update pixels
-        //pixels.show();
+        // pixels.show();
     }
-    
 }
 
 /// @brief When a message is send without server, the message will be received here. You can close the loop to test the module
