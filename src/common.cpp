@@ -720,7 +720,7 @@ void MyPixels::update()
           // Update ratio
           if (_ratioDown)
           {
-               _ratio -= 0.5;
+               _ratio -= _ratioStep;
 
                if (_ratio < 0.0)
                {
@@ -730,7 +730,7 @@ void MyPixels::update()
           }
           else
           {
-               _ratio += 0.5;
+               _ratio += _ratioStep;
 
                if (_ratio > 255)
                {

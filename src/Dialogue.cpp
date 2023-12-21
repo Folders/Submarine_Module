@@ -54,9 +54,9 @@ LiquidTWI2 LCD_4(0x03);
 
 
 Button btn_LCD1(&LCD_1, BUTTON_SELECT);
-Button btn_LCD2(&LCD_1, BUTTON_SELECT);
-Button btn_LCD3(&LCD_1, BUTTON_SELECT);
-Button btn_LCD4(&LCD_1, BUTTON_SELECT);
+Button btn_LCD2(&LCD_2, BUTTON_SELECT);
+Button btn_LCD3(&LCD_3, BUTTON_SELECT);
+Button btn_LCD4(&LCD_4, BUTTON_SELECT);
 Button btn_Next(D4);
 
 ////////  Define global variables
@@ -212,6 +212,12 @@ void ResetModule()
 
 
 #ifdef STANDALONE
+    // Enabled button
+    buttonUsed[0] = true;
+    buttonUsed[1] = true;
+    buttonUsed[2] = true;
+    buttonUsed[3] = true;
+    buttonUsed[4] = true;
 
     // Set a debug text
     writeText(LCD_1, "Screen 1", "", 'R');
@@ -230,6 +236,13 @@ void ResetModule()
     pixels.addVariator(5, CRGB::Blue, CRGB::BlueViolet);
 
 #else
+    // Disabled button
+    buttonUsed[0] = false;
+    buttonUsed[1] = false;
+    buttonUsed[2] = false;
+    buttonUsed[3] = false;
+    buttonUsed[4] = false;
+
     // Clear text
     LCD_1.clear();
     LCD_2.clear();
@@ -258,31 +271,6 @@ uint8_t buttons, btn1_backup;
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    /*
-    buttons = LCD_1.readButtons();
-    Serial.print(buttons);
-    buttons = LCD_2.readButtons();
-    Serial.print(buttons);
-    buttons = LCD_3.readButtons();
-    Serial.print(buttons);
-    buttons = LCD_4.readButtons();
-    Serial.println(buttons);
-
-    if (buttons != btn1_backup)
-    {
-        if (buttons & BUTTON_SELECT)
-        {
-            LCD_1.setBacklight(C_VIOLET);
-        }
-        else
-        {
-            LCD_1.setBacklight(C_GREEN);
-        }
-
-        btn1_backup = buttons;
-    }
-    */
-
    // Read input
     btn_LCD1.read();
     btn_LCD2.read();
@@ -290,24 +278,55 @@ void MyLoop()
     btn_LCD4.read();
     btn_Next.read();
 
-
-    if (btn_LCD1.up())
-        LCD_1.setBacklight(C_VIOLET);
+    // Check if next button is pressed
+    if (buttonUsed[0])
+    {
+        if (btn_Next.up())
+            comm.send("BTN;N;1");
         
-    if (btn_LCD1.down())
-        LCD_1.setBacklight(C_GREEN);
+        if (btn_Next.down())
+            comm.send("BTN;N;0");
+    }
 
-
-    if (btn_Next.up())
-        LCD_4.setBacklight(C_VIOLET);
+    // Check if button 1 is pressed
+    if (buttonUsed[1])
+    {
+        if (btn_LCD1.up())
+            comm.send("BTN;A;1");
         
-    if (btn_Next.down())
-        LCD_4.setBacklight(C_GREEN);
+        if (btn_LCD1.down())
+            comm.send("BTN;A;0");
+    }
 
-
-
-    Serial.println(digitalRead(D4));
-
+    // Check if button 2 is pressed
+    if (buttonUsed[2])
+    {
+        if (btn_LCD2.up())
+            comm.send("BTN;B;1");
+        
+        if (btn_LCD2.down())
+            comm.send("BTN;B;0");
+    }
+    
+    // Check if button 3 is pressed
+    if (buttonUsed[3])
+    {
+        if (btn_LCD3.up())
+            comm.send("BTN;C;1");
+        
+        if (btn_LCD3.down())
+            comm.send("BTN;C;0");
+    }
+    
+    // Check if button 4 is pressed
+    if (buttonUsed[4])
+    {
+        if (btn_LCD4.up())
+            comm.send("BTN;D;1");
+        
+        if (btn_LCD4.down())
+            comm.send("BTN;D;0");
+    }
 
     pixels.update();
 }

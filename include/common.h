@@ -268,7 +268,11 @@ private:
     /// @brief An update is requered
     bool _updateRequest;
     
+    /// @brief Current value of the variaton
     float _ratio;
+
+    /// @brief Step of variaton for a cycle
+    float _ratioStep = 1.0;
 
     bool _ratioDown = false;
 
