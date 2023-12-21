@@ -6,6 +6,7 @@
 #include <vector>
 #include <WiFiUDP.h>
 #include <FastLED.h>
+#include <LiquidTWI2.h>
 
 // Enabled all serial communication (put in comment to disabled log mode)
 #define LOG
@@ -448,6 +449,50 @@ public:
     /// @param out_Max Maximum of the user value (mapping)
     Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max );
 
+};
+
+
+
+/// @brief Button management
+class Button
+{
+private:
+    // Input parameter
+    uint8_t _pin;
+    LiquidTWI2 * _lcd;
+
+    // Button parameter
+    uint8_t _state, _backup;
+    bool _isLCD;
+    
+    // Button state
+	bool _up;
+	bool _down;
+public:
+
+    /// @brief Define button on a digital input
+    /// @param pin Input pin
+    Button(uint8_t pin);
+
+    /// @brief Define button on a LCD
+    /// @param lcd LCD to read input
+    /// @param input Input to check
+    Button(LiquidTWI2* lcd, uint8_t input);
+    
+	/// @brief Read the value of the button
+	void read();
+    
+    /// @brief Get the value of the button
+    /// @return Button state
+    bool value();
+
+    /// @brief Get if it's a rising edge
+    /// @return Rising edge state
+    bool up();
+
+    /// @brief Get if it's a falling edge
+    /// @return Falling edge state
+    bool down();
 };
 
 

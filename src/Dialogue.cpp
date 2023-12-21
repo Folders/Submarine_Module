@@ -52,6 +52,13 @@ LiquidTWI2 LCD_2(0x01);
 LiquidTWI2 LCD_3(0x02);
 LiquidTWI2 LCD_4(0x03);
 
+
+Button btn_LCD1(&LCD_1, BUTTON_SELECT);
+Button btn_LCD2(&LCD_1, BUTTON_SELECT);
+Button btn_LCD3(&LCD_1, BUTTON_SELECT);
+Button btn_LCD4(&LCD_1, BUTTON_SELECT);
+Button btn_Next(D4);
+
 ////////  Define global variables
 bool buttonUsed[5];
 
@@ -247,15 +254,15 @@ uint8_t buttons, btn1_backup;
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-
+    /*
     buttons = LCD_1.readButtons();
-    /*Serial.print(buttons);
+    Serial.print(buttons);
     buttons = LCD_2.readButtons();
     Serial.print(buttons);
     buttons = LCD_3.readButtons();
     Serial.print(buttons);
     buttons = LCD_4.readButtons();
-    Serial.println(buttons);*/
+    Serial.println(buttons);
 
     if (buttons != btn1_backup)
     {
@@ -270,6 +277,33 @@ void MyLoop()
 
         btn1_backup = buttons;
     }
+    */
+
+   // Read input
+    btn_LCD1.read();
+    btn_LCD2.read();
+    btn_LCD3.read();
+    btn_LCD4.read();
+    btn_Next.read();
+
+
+    if (btn_LCD1.up())
+        LCD_1.setBacklight(C_VIOLET);
+        
+    if (btn_LCD1.down())
+        LCD_1.setBacklight(C_GREEN);
+
+
+    if (btn_Next.up())
+        LCD_4.setBacklight(C_VIOLET);
+        
+    if (btn_Next.down())
+        LCD_4.setBacklight(C_GREEN);
+
+
+
+    Serial.println(digitalRead(D4));
+
 
     pixels.update();
 }

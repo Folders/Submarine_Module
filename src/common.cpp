@@ -685,10 +685,10 @@ void MyPixels::addLeds(int number)
 /// @brief Initalize the leds controler. Do not used, already done in master
 void MyPixels::initalize()
 {
-     
+
      this->_leds = new CRGB[_numLEDs];
-     
-     //FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
+
+     // FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
      FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
 }
 
@@ -705,16 +705,15 @@ void MyPixels::update()
 
      if (this->_updateRequest)
      {
-               
-          #ifdef LOG
+
+#ifdef LOG
           // Log send text
           Serial.println("LED - Update is done");
-          #endif
+#endif
 
           FastLED.show();
           this->_updateRequest = false;
      }
-
 
      if (_variators.size() > 0)
      {
@@ -741,7 +740,7 @@ void MyPixels::update()
           }
 
           // Update ratio value
-          for (auto& variateur : _variators)
+          for (auto &variateur : _variators)
           {
                variateur.update(_leds, _ratio);
           }
@@ -749,11 +748,9 @@ void MyPixels::update()
           // Update button
           FastLED.show();
      }
-
 }
 
-
-void MyPixels::setPixelColor(int index, const CRGB& newColor)
+void MyPixels::setPixelColor(int index, const CRGB &newColor)
 {
      // Vérifier que l'index est valide
      if (index >= 0 && index < this->_numLEDs)
@@ -771,51 +768,140 @@ void MyPixels::setPixelColor(int index, const CRGB& newColor)
                this->_leds[index] = newColor;
                this->_updateRequest = true;
 
-               #ifdef LOG
+#ifdef LOG
                // Log send text
                Serial.println("LED - Update with new color ");
-               #endif
+#endif
           }
      }
 }
 
-
-
-void MyPixels::addVariator(int index, const CRGB& colorStart, const CRGB& colorEnd)
+void MyPixels::addVariator(int index, const CRGB &colorStart, const CRGB &colorEnd)
 {
      _variators.push_back(Variator(index, colorStart, colorEnd));
 }
 
-
 void MyPixels::deleteVariator(int index)
 {
 
-    auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index]( Variator& v) {
+     auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index](Variator &v)
+                              {
         if (v.getIndex() == index) {
             //setPixelColor(v.index, CRGB::Black); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
             return true;
         }
-        return false;
-    });
+        return false; });
 
-    _variators.erase(it, _variators.end());
+     _variators.erase(it, _variators.end());
 }
 
-
-bool MyPixels::_asVariator(int index) 
+bool MyPixels::_asVariator(int index)
 {
      if (_variators.size() == 0)
           return false;
 
      // Update ratio value
-     for (auto& variateur : _variators)
+     for (auto &variateur : _variators)
      {
           if (variateur.getIndex() == index)
           {
                return true;
           }
      }
-     
+
      return false;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+//                                     Neopixel manager                                    //
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////   Constructor   ///////////////////////////
+
+/// @brief Define button on a digital input
+/// @param pin Input pin
+Button::Button(uint8_t pin)
+{
+     // Save parameter
+     _pin = pin;
+     _isLCD = false;
+
+     // Config of button
+     pinMode(pin, INPUT);
+     digitalWrite(pin, HIGH);
+
+     // Read button
+     _state = digitalRead(pin);
+     _backup = _state;
+}
+
+/// @brief Define button on a LCD
+/// @param lcd LCD to read input
+/// @param input Input to check
+Button::Button(LiquidTWI2 *lcd, uint8_t input)
+{
+     // Save parameter
+     _pin = input;
+     _lcd = lcd;
+     _isLCD = true;
+}
+
+void Button::read(void)
+{
+     // Read state
+     if (_isLCD)
+     {
+          // get button state on LCD
+          if (_lcd->readButtons() & _pin)
+               _state = 1;
+          else
+               _state = 0;
+     }
+     else
+     {
+          // get input state
+          _state = digitalRead(_pin);
+     }
+
+     if (_backup != _state)
+     {
+          _backup = _state;
+
+          if (_state == HIGH)
+          {
+               _down = true;
+          }
+          else
+          {
+               _up = true;
+          }
+     }
+     else
+     {
+          _down = false;
+          _up = false;
+     }
+}
+
+bool Button::value(void)
+{
+
+     if (_state)
+     {
+          return true;
+     }
+     else
+     {
+          return false;
+     }
+}
+
+bool Button::up(void)
+{
+     return _up;
+}
+
+bool Button::down(void)
+{
+     return _down;
+}
