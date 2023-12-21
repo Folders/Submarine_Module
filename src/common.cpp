@@ -831,7 +831,12 @@ Button::Button(uint8_t pin)
      digitalWrite(pin, HIGH);
 
      // Read button
-     _state = digitalRead(pin);
+     if (digitalRead(pin) > 0)
+          _state = true;
+     else
+          _state = false;
+
+     // Save backup
      _backup = _state;
 }
 
@@ -844,6 +849,26 @@ Button::Button(LiquidTWI2 *lcd, uint8_t input)
      _pin = input;
      _lcd = lcd;
      _isLCD = true;
+
+     // get button state on LCD
+     if (_lcd->readButtons() & _pin)
+          _state = true;
+     else
+          _state = false;
+          
+     // Save backup
+     _backup = _state;
+}
+
+
+void Button::invert(void)
+{
+     // Save if input must be inverted
+     _invert = !_invert;
+
+     // Invert the current state
+     _state = !_state;
+     _backup = !_backup;
 }
 
 void Button::read(void)
@@ -853,27 +878,35 @@ void Button::read(void)
      {
           // get button state on LCD
           if (_lcd->readButtons() & _pin)
-               _state = 1;
+               _state = true;
           else
-               _state = 0;
+               _state = false;
      }
      else
      {
-          // get input state
-          _state = digitalRead(_pin);
+          // Read button
+          if (digitalRead(_pin) > 0)
+               _state = true;
+          else
+               _state = false;
      }
 
+     // Invert input if needed
+     if (_invert)
+          _state = !_state;
+
+     // Check if update is done
      if (_backup != _state)
      {
           _backup = _state;
 
           if (_state == HIGH)
           {
-               _down = true;
+               _up = true;
           }
           else
           {
-               _up = true;
+               _down  = true;
           }
      }
      else

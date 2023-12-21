@@ -207,6 +207,10 @@ void MySetup()
 void ResetModule()
 {
 
+    // Change parameter of button
+    btn_Next.invert();
+
+
 #ifdef STANDALONE
 
     // Set a debug text

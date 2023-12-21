@@ -462,10 +462,11 @@ private:
     LiquidTWI2 * _lcd;
 
     // Button parameter
-    uint8_t _state, _backup;
+    bool _invert;
     bool _isLCD;
     
     // Button state
+    bool _state, _backup;
 	bool _up;
 	bool _down;
 public:
@@ -479,6 +480,9 @@ public:
     /// @param input Input to check
     Button(LiquidTWI2* lcd, uint8_t input);
     
+    /// @brief Invert reading value
+    void invert();
+
 	/// @brief Read the value of the button
 	void read();
     
