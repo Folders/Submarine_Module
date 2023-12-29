@@ -216,12 +216,23 @@ void setup()
     // Call my custom setup
     MySetup();
 
+    // Define pixels property
+    pixels.useInfoPixel();
+    pixels.initalize();
+
 #ifndef STANDALONE
+
+    // Color to wait wifi
+    //pixels.staWaitWifi();
+
     // Wait until wifi is connected
     do
     {
         wifiConnected = connectWifi();
     } while (wifiConnected == false);
+
+    // Color to wait server
+    //pixels.staWaitServer();
 
     // Create UDP server
     udpConnected = connectUDP();
@@ -375,6 +386,9 @@ void loop()
 
                     comm.Started();
 
+                    // Color when connection is done
+                    pixels.staConnected();
+
 #ifdef LOG
                     Serial.println("");
                     Serial.println("Connected to server : ");
@@ -384,7 +398,7 @@ void loop()
             }
         }
 
-        delay(10);
+        //delay(10);
     }
 #endif
 

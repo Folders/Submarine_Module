@@ -119,43 +119,60 @@ void writeText(LiquidTWI2 &lcd, const char *l1, const char *l2, char color)
 
 void buttonColor(int ind, char color)
 {
+    int pixelPos = ind;
+
     // Exit of parameter are not OK
-    if (ind == 0 || ind > 4)
+    if (ind < 0 || ind > 4)
         return;
 
     // Set as used the current button
     buttonUsed[ind]= true;
 
+    // Pos 0 is used for the next button, but it's Pos 5 in neopixel
+    if (ind == 0)
+        pixelPos = 5;    
+
+#ifdef LOG
+    Serial.print("Update btn ");
+    Serial.print(pixelPos);
+    Serial.print(" with color ");
+    Serial.println(color);
+#endif
+
     // Chagement de la couleur
     switch (color)
     {
     case 'R': // Rouge
-        pixels.addVariator(ind, CRGB::Red, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Red, CRGB::Black);
         break;
     case 'Y': // Jaune
-        pixels.addVariator(ind, CRGB::Yellow, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Yellow, CRGB::Black);
         break;
     case 'G': // Vert
-        pixels.addVariator(ind, CRGB::Green, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Green, CRGB::Black);
         break;
     case 'T': // Bleu claire
-        pixels.addVariator(ind, CRGB::Teal, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Teal, CRGB::Black);
         break;
     case 'B': // Blue
-        pixels.addVariator(ind, CRGB::Blue, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Blue, CRGB::Black);
         break;
     case 'V': // Violet
-        pixels.addVariator(ind, CRGB::Violet, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::Violet, CRGB::Black);
         break;
     case 'W': // Blanc
-        pixels.addVariator(ind, CRGB::White, CRGB::Black);
+        pixels.addVariator(pixelPos, CRGB::White, CRGB::Black);
+        break;
+    case 'O': // Orange
+        pixels.addVariator(pixelPos, CRGB::Orange, CRGB::Black);
         break;
     case '0': // Turn off
-        pixels.setPixelColor(ind, CRGB::Black);
+        pixels.setPixelColor(pixelPos, CRGB::Black);
 
         // The button is not used
         buttonUsed[ind]= false;
         break;
+
     case 'N': // No update
         break;
     }
@@ -186,9 +203,7 @@ void MySetup()
     LCD_4.begin(16, 2);
 
     // Define pixels property
-    pixels.useInfoPixel();
     pixels.addLeds(5);
-    pixels.initalize();
 
     /*/ Neo pixels
     pixels.begin();
@@ -328,7 +343,6 @@ void MyLoop()
             comm.send("BTN;D;0");
     }
 
-    pixels.update();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,6 +366,67 @@ void Received()
         // If you want to read one parameter, you can use the function comm.GetParameter(x)
         Serial.println("Value of parameter 1 :");
         Serial.println(comm.GetParameter(1));
+    }
+
+    // The get the received code, use the function GetCode()
+    if (comm.GetCode() == "LED")
+    {
+        // Get index of light
+        int i = comm.GetParameter(1).toInt();
+
+        // Check if index is in range
+        if (i < 0 || i >= NB_INPUT)
+            return;
+
+        // If we receive juste an other parameter, apply the color depending of the char
+        if (comm.GetSize() == 2)
+        {
+            switch (comm.GetParameter(2)[0])
+            {
+            case '0':
+                pixels.setPixelColor(i, CRGB::Black); // turn led OFF
+                break;
+
+            case 'R':
+                pixels.setPixelColor(i, CRGB(255, 0, 0)); // turn led red
+                break;
+
+            case 'G':
+                pixels.setPixelColor(i, CRGB(0, 255, 0)); // turn led green
+                break;
+
+            case 'B':
+                pixels.setPixelColor(i, CRGB(0, 0, 255)); // turn led blue
+                break;
+
+            case 'r':
+                pixels.addVariator(i, CRGB::Red, CRGB::Black);
+                break;
+
+            case 'g':
+                pixels.addVariator(i, CRGB::Green, CRGB::Black);
+                break;
+
+            case 'b':
+                pixels.addVariator(i, CRGB::Blue, CRGB::Black);
+                break;
+            }
+        }
+
+        // If we receive 3 parameter, apply the received color
+        if (comm.GetSize() == 4)
+        {
+            // Load color
+            int r = comm.GetParameter(2).toInt();
+            int g = comm.GetParameter(3).toInt();
+            int b = comm.GetParameter(4).toInt();
+
+            // Set received color
+            pixels.setPixelColor(i, CRGB(r, g, b)); // turn led blue
+        }
+
+        // Update pixels
+        // pixels.show();
     }
 
     // The get the received code, use the function GetCode()
@@ -423,65 +498,31 @@ void Received()
     }
 
     // The get the received code, use the function GetCode()
-    if (comm.GetCode() == "LED")
+    if (comm.GetCode() == "DLG")
     {
-        // Get index of light
-        int i = comm.GetParameter(1).toInt();
-
-        // Check if index is in range
-        if (i < 0 || i >= NB_INPUT)
-            return;
-
+        #ifdef LOG
+            Serial.println("Get DLG");
+        #endif
         // If we receive juste an other parameter, apply the color depending of the char
-        if (comm.GetSize() == 2)
+        if (comm.GetSize() == 1)
         {
-            switch (comm.GetParameter(2)[0])
+            
+        #ifdef LOG
+            Serial.println(comm.GetParameter(1)[0]);
+        #endif
+            switch (comm.GetParameter(1)[0])
             {
             case '0':
-                pixels.setPixelColor(i, CRGB::Black); // turn led OFF
+                buttonColor(0, '0');
                 break;
 
-            case 'R':
-                pixels.setPixelColor(i, CRGB(255, 0, 0)); // turn led red
-                break;
-
-            case 'G':
-                pixels.setPixelColor(i, CRGB(0, 255, 0)); // turn led green
-                break;
-
-            case 'B':
-                pixels.setPixelColor(i, CRGB(0, 0, 255)); // turn led blue
-                break;
-
-            case 'r':
-                pixels.addVariator(i, CRGB::Red, CRGB::Black);
-                break;
-
-            case 'g':
-                pixels.addVariator(i, CRGB::Green, CRGB::Black);
-                break;
-
-            case 'b':
-                pixels.addVariator(i, CRGB::Blue, CRGB::Black);
+            case '1':
+                buttonColor(0, 'O');
                 break;
             }
         }
-
-        // If we receive 3 parameter, apply the received color
-        if (comm.GetSize() == 4)
-        {
-            // Load color
-            int r = comm.GetParameter(2).toInt();
-            int g = comm.GetParameter(3).toInt();
-            int b = comm.GetParameter(4).toInt();
-
-            // Set received color
-            pixels.setPixelColor(i, CRGB(r, g, b)); // turn led blue
-        }
-
-        // Update pixels
-        // pixels.show();
     }
+    
 }
 
 /// @brief When a message is send without server, the message will be received here. You can close the loop to test the module

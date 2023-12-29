@@ -12,7 +12,7 @@
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-#define STANDALONE
+//#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 //#define MODEL
@@ -288,6 +288,15 @@ public:
 
     /// @brief Use the first pixel as status info
     void useInfoPixel();
+
+    /// @brief Waiting the wifi connection
+    void staWaitWifi();
+
+    /// @brief Waiting for the server
+    void staWaitServer();
+
+    /// @brief Waiting for the server
+    void staConnected();
 
     /// @brief Add a number of led to control
     /// @param number Number of led in the project

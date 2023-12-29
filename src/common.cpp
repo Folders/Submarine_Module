@@ -4,6 +4,7 @@
 // Special library
 #include <errno.h>
 #include <vector>
+#include <FastLED.h> // header file
 
 /// @brief Convert chars to int
 /// @param p Text to convert
@@ -674,6 +675,37 @@ void MyPixels::useInfoPixel()
      this->_asInfo = true;
 }
 
+/// @brief Waiting the wifi connection
+void MyPixels::staWaitWifi()
+{
+     // Put the led in blue
+     _leds[0] = CRGB(0x0000FF);
+     
+     // Update color
+     FastLED.show();
+}
+
+/// @brief Waiting for the server
+void MyPixels::staWaitServer()
+{
+     // Put the led in blue
+     _leds[0] = CRGB(0xEE82EE);
+     
+     // Update color
+     FastLED.show();
+}
+
+/// @brief Waiting for the server
+void MyPixels::staConnected()
+{
+     // Put the led in blue
+     _leds[0] = CRGB(0x32CD32);
+     
+     // Update color
+     FastLED.show();
+}
+
+
 /// @brief Add a number of led to control
 /// @param number Number of led in the project
 void MyPixels::addLeds(int number)
@@ -695,7 +727,6 @@ void MyPixels::initalize()
 /// @brief Update pixel output
 void MyPixels::show()
 {
-
      FastLED.show();
 }
 
