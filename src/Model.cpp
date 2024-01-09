@@ -2,6 +2,8 @@
 #ifdef MODEL
 
 #include <Arduino.h>
+#include "SoundData.h"
+#include "XT_DAC_Audio.h"
 
 //////// Add new include library
 //#include <Adafruit_NeoPixel.h>
@@ -14,6 +16,14 @@
 int _testInt = 0;
 bool _testBool = 0;
 
+XT_Wav_Class ForceWithYou(Force);     // create an object of type XT_Wav_Class that is used by 
+                                      // the dac audio class (below), passing wav data as parameter.
+                                      
+XT_DAC_Audio_Class DacAudio(25,0);    // Create the main player class object. 
+                                      // Use GPIO 25, one of the 2 DAC pins and timer 0
+
+uint32_t DemoCounter=0;               // Just a counter to use in the serial monitor
+                                      // not essential to playing the sound
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -53,15 +63,10 @@ void ResetModule()
 /// @brief Call at the end of the main loop function
 void MyLoop()
 {
-    // To send datas to the server, use the send function
-    comm.send("LED;R;1");
-
-    // It's possible to send with more then on line
-    comm.start();      // Open the buffer
-    comm.add("LED");   // Write String
-    comm.add(';');     // Add char
-    // comm.add(testInt); // Add from variable
-    comm.send();       // Send concatened variable
+DacAudio.FillBuffer();                // Fill the sound buffer with data
+  if(ForceWithYou.Playing==false)       // if not playing,
+    DacAudio.Play(&ForceWithYou);       // play it, this will cause it to repeat and repeat...
+  Serial.println(DemoCounter++);        // Showing that the sound will play as well as your code running here.
 }
 
 
