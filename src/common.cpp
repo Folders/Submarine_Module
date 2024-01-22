@@ -4,7 +4,7 @@
 // Special library
 #include <errno.h>
 #include <vector>
-//#include <FastLED.h> // header file
+// #include <FastLED.h> // header file
 #include <Adafruit_NeoPixel.h>
 
 /// @brief Convert chars to int
@@ -679,33 +679,60 @@ void MyPixels::useInfoPixel()
 /// @brief Waiting the wifi connection
 void MyPixels::staWaitWifi()
 {
+#ifdef LOG
+     Serial.println("Status: Wait wifi");
+#endif
+
      // Put the led in blue
-     _leds[0] = CRGB(0x0000FF);
-     
+     _leds.setPixelColor(0, 0x0000FF);
+
      // Update color
-     FastLED.show();
+     _leds.show();
 }
 
 /// @brief Waiting for the server
 void MyPixels::staWaitServer()
 {
+#ifdef LOG
+     Serial.println("Status: Wait server");
+#endif
+
      // Put the led in blue
-     _leds[0] = CRGB(0xEE82EE);
-     
+     _leds.setPixelColor(0, 0xEE82EE);
+
      // Update color
-     FastLED.show();
+     _leds.show();
 }
 
 /// @brief Waiting for the server
 void MyPixels::staConnected()
 {
+#ifdef LOG
+     Serial.println("Status: Connected");
+#endif
+
      // Put the led in blue
-     _leds[0] = CRGB(0x32CD32);
-     
+     _leds.setPixelColor(0, 0x32CD32);
+
      // Update color
-     FastLED.show();
+     _leds.show();
 }
 
+/// @brief Module is in simulation (Yellow)
+void MyPixels::staSimulation()
+{ 
+#ifdef LOG
+     Serial.println("Status: In simulation");
+#endif
+
+     // Put the led in blue
+     //_leds.setPixelColor(0, 0xFFFF00);
+     _leds.setPixelColor(0, 255, 255, 0);
+     show()
+
+     // Update color
+     _leds.show();
+}
 
 /// @brief Add a number of led to control
 /// @param number Number of led in the project
@@ -720,24 +747,38 @@ void MyPixels::initalize()
 {
 
 #ifdef LOG
-    Serial.print("Pixels: Init ");
-    Serial.print(_numLEDs);
-    Serial.println(" pixels");
+     Serial.print("Pixels: Init ");
+     Serial.print(_numLEDs);
+     Serial.println(" pixels");
 #endif
 
-     _leds = new CRGB[_numLEDs];
+     //_leds = new CRGB[_numLEDs];
 
      // FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
-     FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
+     // FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
+
+     _leds.updateLength(_numLEDs);
+     _leds.updateType(NEO_GRB + NEO_KHZ800);
+     _leds.setPin(0);
+
+     _leds.begin();
+
+     _leds.clear();
+     _leds.show();
 }
 
 /// @brief Update pixel output
 void MyPixels::show()
 {
-     FastLED.show();
+
+#ifdef LOG
+     Serial.println("Pixel: Show pixels");
+#endif
+
+     _leds.show();
      this->_updateRequest = false;
 
-     yield();
+     // yield();
 }
 
 /// @brief Update pixel output
@@ -771,14 +812,13 @@ void MyPixels::update()
           // Update ratio value
           for (auto &variateur : _variators)
           {
-               variateur.update(_leds, _ratio);
+               variateur.update(&_leds, _ratio);
           }
 
           // Update button
           show();
      }
 
-     
      if (this->_updateRequest)
      {
 #ifdef LOG
@@ -788,10 +828,9 @@ void MyPixels::update()
 
           show();
      }
-
 }
 
-void MyPixels::setPixelColor(int index, const CRGB &newColor)
+void MyPixels::setPixelColor(int index, const Pixel &newColor)
 {
      // Vérifier que l'index est valide
      if (index >= 0 && index < this->_numLEDs)
@@ -802,29 +841,35 @@ void MyPixels::setPixelColor(int index, const CRGB &newColor)
                deleteVariator(index);
           }
 
+          _leds.setPixelColor(index, newColor.Red, newColor.Green, newColor.Blue);
           // If the color change
-          if (this->_leds[index] != newColor)
-          {
-               // Update the colors
-               this->_leds[index] = newColor;
-               this->_updateRequest = true;
+          // if (this->_leds[index] != newColor)
+          //{
+          // Update the colors
+          //     this->_leds[index] = newColor;
+          //     this->_updateRequest = true;
 
 #ifdef LOG
-    Serial.print("Pixels: Set pixel ");
-    Serial.print(index);
-    Serial.print(" with color ");
-    Serial.print(newColor.r);
-    Serial.print(",");
-    Serial.print(newColor.g);
-    Serial.print(",");
-    Serial.println(newColor.b);
+          Serial.print("Pixels: Set pixel ");
+          Serial.print(index);
+          Serial.print(" with color ");
+          Serial.print(newColor.Red);
+          Serial.print(",");
+          Serial.print(newColor.Green);
+          Serial.print(",");
+          Serial.println(newColor.Blue);
 #endif
 
-          }
+          //}
      }
 }
 
-void MyPixels::addVariator(int index, const CRGB &colorStart, const CRGB &colorEnd)
+void MyPixels::setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b)
+{
+     _leds.setPixelColor(index, r, g, b);
+}
+
+void MyPixels::addVariator(int index, const Pixel &colorStart, const Pixel &colorEnd)
 {
      _variators.push_back(Variator(index, colorStart, colorEnd));
 }
@@ -903,11 +948,10 @@ Button::Button(LiquidTWI2 *lcd, uint8_t input)
           _state = true;
      else
           _state = false;
-          
+
      // Save backup
      _backup = _state;
 }
-
 
 void Button::invert(void)
 {
@@ -954,7 +998,7 @@ void Button::read(void)
           }
           else
           {
-               _down  = true;
+               _down = true;
           }
      }
      else

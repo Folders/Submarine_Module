@@ -5,30 +5,31 @@
 #include <string>
 #include <vector>
 #include <WiFiUDP.h>
-#include <FastLED.h>
 #include <LiquidTWI2.h>
+// #include <FastLED.h>
+#include <Adafruit_NeoPixel.h>
 
 // Enabled all serial communication (put in comment to disabled log mode)
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-//#define STANDALONE
+#define STANDALONE
 
 // Define witch module is used (ONLY ONE)
-//#define MODEL
-//#define BREACH
-#define DIALOGUE
-//#define ELECTRICITY
-//#define ENERGY
-//#define ENGINE
-//#define EXTINGUISHER
-//#define FIRE 
-//#define NAVIGATION
-//#define RADAR
-//#define REACTOR
-//#define SHIELD
-//#define TORPEDO
-
+// #define MODEL
+// #define BREACH
+// #define DIALOGUE
+// #define ELECTRICITY
+// #define ENERGY
+// #define ENGINE
+// #define EXTINGUISHER
+// #define FIRE
+// #define NAVIGATION
+// #define RADAR
+// #define REACTOR
+// #define SHIELD
+// #define TORPEDO
+#define TEST
 
 // Define module number if more then one is used
 #define NUMBER 3
@@ -60,6 +61,8 @@
 #define TYPE "TRP"
 #elif defined(DIALOGUE)
 #define TYPE "DLG"
+#elif defined(TEST)
+#define TYPE "TST"
 #else
 #error "No module selected!"
 #endif
@@ -220,120 +223,15 @@ public:
     void Info_Received();
 };
 
-
-class Variator
-{
-public:
-    Variator(int index, const CRGB& colorStart, const CRGB& colorEnd)
-        : _index(index), _colorStart(colorStart), _colorEnd(colorEnd) {}
-
-    void update(CRGB* leds, float ratio)
-    {
-        // Interpolation linéaire entre les deux couleurs
-        CRGB couleurInterpolee = blend(_colorStart, _colorEnd, ratio);
-
-        // Mettre à jour la couleur de la LED
-        leds[_index] = couleurInterpolee;
-    }
-
-    int const getIndex()
-    {
-        return _index;
-    }
-
-private:
-    int _index;
-    CRGB _colorStart;
-    CRGB _colorEnd;
-};
-
-
-/// @brief Pixel management
-class MyPixels
-{
-private:
-
-    /// @brief Array of leds 
-    CRGB* _leds;
-
-    /// @brief Number of leds
-    int _numLEDs;
-
-    /// @brief Output to control the leds (default = 0)
-    int _output;
-
-    /// @brief If the led is one
-    bool _asInfo = false;
-
-    /// @brief An update is requered
-    bool _updateRequest;
-    
-    /// @brief Current value of the variaton
-    float _ratio;
-
-    /// @brief Step of variaton for a cycle
-    float _ratioStep = 1.0;
-
-    bool _ratioDown = false;
-
-    /// @brief Add variator object
-    std::vector<Variator> _variators;
-
-
-    bool _asVariator(int index);
-
-public:
-    /// @brief Create a pixels manager object
-    MyPixels();
-
-    /// @brief Use the first pixel as status info
-    void useInfoPixel();
-
-    /// @brief Waiting the wifi connection
-    void staWaitWifi();
-
-    /// @brief Waiting for the server
-    void staWaitServer();
-
-    /// @brief Waiting for the server
-    void staConnected();
-
-    /// @brief Add a number of led to control
-    /// @param number Number of led in the project
-    void addLeds(int number);
-
-    /// @brief Initalize the leds controler. Do not used, already done in master
-    void initalize();
-
-    void show();
-
-    void update();
-    
-    void setPixelColor(int index, const CRGB& newColor);
-
-
-    void addVariator(int index, const CRGB& colorStart, const CRGB& colorEnd);
-
-
-    void deleteVariator(int index);
-
-
-};
-
-
-
-
 /// @brief Pixel management
 class Pixel
 {
 private:
-
     /// @brief If the led is one
     bool _on = true;
 
     /// @brief Current brigntness of the pixel, 0 is disabled, 1 is min and 255 is max.
     uint8_t _brightness = 0;
-
 
 public:
     /// @brief Create a pixel object
@@ -356,7 +254,6 @@ public:
     /// @param color Set a pixel's color using a 32-bit 'packed' RGB (Ex: 0xAAFF88)
     Pixel(uint32_t color);
 
-
     /// @brief Red componant of pixel, between 0..255
     uint8_t Red;
 
@@ -373,7 +270,6 @@ public:
     /// @brief Set the brightness of the pixel
     /// @param brightness 0= off, 1 = max.
     void SetBrightness(float brightness);
-
 
     /// @brief Return red color of the pixel, with brightness
     /// @return Current red value (0..255)
@@ -406,6 +302,103 @@ public:
     void SetColor(uint32_t newColor);
 };
 
+class Variator
+{
+public:
+    Variator(int index, const Pixel &colorStart, const Pixel &colorEnd)
+        : _index(index), _colorStart(colorStart), _colorEnd(colorEnd) {}
+
+    void update(Adafruit_NeoPixel *leds, float ratio)
+    {
+        // Interpolation linéaire entre les deux couleurs
+        //*********************  Pixel couleurInterpolee = blend(_colorStart, _colorEnd, ratio);
+
+        // Mettre à jour la couleur de la LED
+        //********************* leds[_index] = couleurInterpolee;
+    }
+
+    int const getIndex()
+    {
+        return _index;
+    }
+
+private:
+    int _index;
+    Pixel _colorStart;
+    Pixel _colorEnd;
+};
+
+/// @brief Pixel management
+class MyPixels
+{
+private:
+    /// @brief Array of leds
+    // CRGB* _leds;
+    // Adafruit_NeoPixel _leds = Adafruit_NeoPixel(6, 0, NEO_GRB + NEO_KHZ800);
+    Adafruit_NeoPixel _leds = Adafruit_NeoPixel();
+
+    /// @brief Number of leds
+    int _numLEDs;
+
+    /// @brief Output to control the leds (default = 0)
+    int _output;
+
+    /// @brief If the led is one
+    bool _asInfo = false;
+
+    /// @brief An update is requered
+    bool _updateRequest;
+
+    /// @brief Current value of the variaton
+    float _ratio;
+
+    /// @brief Step of variaton for a cycle
+    float _ratioStep = 1.0;
+
+    bool _ratioDown = false;
+
+    /// @brief Add variator object
+    std::vector<Variator> _variators;
+
+    bool _asVariator(int index);
+
+public:
+    /// @brief Create a pixels manager object
+    MyPixels();
+
+    /// @brief Use the first pixel as status info
+    void useInfoPixel();
+
+    /// @brief Waiting the wifi connection
+    void staWaitWifi();
+
+    /// @brief Waiting for the server
+    void staWaitServer();
+
+    /// @brief Waiting for the server
+    void staConnected();
+
+    /// @brief Module is in simulation (Yellow)
+    void staSimulation();
+
+    /// @brief Add a number of led to control
+    /// @param number Number of led in the project
+    void addLeds(int number);
+
+    /// @brief Initalize the leds controler. Do not used, already done in master
+    void initalize();
+
+    void show();
+
+    void update();
+
+    void setPixelColor(int index, const Pixel &newColor);
+    void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
+
+    void addVariator(int index, const Pixel &colorStart, const Pixel &colorEnd);
+
+    void deleteVariator(int index);
+};
 
 /// @brief Analog management
 class Analog
@@ -432,14 +425,13 @@ private:
     uint16_t _mapOutMax = 0;
 
     /// @brief Define map function
-    /// @param in_Min 
-    /// @param in_Max 
-    /// @param out_Min 
-    /// @param out_Max 
+    /// @param in_Min
+    /// @param in_Max
+    /// @param out_Min
+    /// @param out_Max
     void _SetMap(uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max);
-    
-public:
 
+public:
     /// @brief Read analog value from an input
     /// @return Current analog value
     uint16_t Read();
@@ -452,7 +444,7 @@ public:
     /// @param pin Input pin
     /// @param average Average of the analog input
     Analog(uint8_t pin, uint8_t average);
-    
+
     /// @brief Define analog input with a mapping
     /// @param pin Input pin
     /// @param average Average of the analog input
@@ -460,11 +452,8 @@ public:
     /// @param in_Max Maximum value of the analog input
     /// @param out_Min Minimum of the user value (mapping)
     /// @param out_Max Maximum of the user value (mapping)
-    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max );
-
+    Analog(uint8_t pin, uint8_t average, uint16_t in_Min, uint16_t in_Max, uint16_t out_Min, uint16_t out_Max);
 };
-
-
 
 /// @brief Button management
 class Button
@@ -472,18 +461,18 @@ class Button
 private:
     // Input parameter
     uint8_t _pin;
-    LiquidTWI2 * _lcd;
+    LiquidTWI2 *_lcd;
 
     // Button parameter
     bool _invert;
     bool _isLCD;
-    
+
     // Button state
     bool _state, _backup;
-	bool _up;
-	bool _down;
-public:
+    bool _up;
+    bool _down;
 
+public:
     /// @brief Define button on a digital input
     /// @param pin Input pin
     Button(uint8_t pin);
@@ -491,14 +480,14 @@ public:
     /// @brief Define button on a LCD
     /// @param lcd LCD to read input
     /// @param input Input to check
-    Button(LiquidTWI2* lcd, uint8_t input);
-    
+    Button(LiquidTWI2 *lcd, uint8_t input);
+
     /// @brief Invert reading value
     void invert();
 
-	/// @brief Read the value of the button
-	void read();
-    
+    /// @brief Read the value of the button
+    void read();
+
     /// @brief Get the value of the button
     /// @return Button state
     bool value();
@@ -512,7 +501,6 @@ public:
     bool down();
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Global variable                                      //
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,7 +508,6 @@ public:
 extern MyComm comm;
 
 extern MyPixels pixels;
-
 
 #ifndef STANDALONE
 extern IPAddress Dest;

@@ -388,15 +388,15 @@ void Received()
                 break;
 
             case 'R':
-                pixels.setPixelColor(i, CRGB(255, 0, 0)); // turn led red
+                pixels.setPixelColor(i, Pixel(255, 0, 0)); // turn led red
                 break;
 
             case 'G':
-                pixels.setPixelColor(i, CRGB(0, 255, 0)); // turn led green
+                pixels.setPixelColor(i, Pixel(0, 255, 0)); // turn led green
                 break;
 
             case 'B':
-                pixels.setPixelColor(i, CRGB(0, 0, 255)); // turn led blue
+                pixels.setPixelColor(i, Pixel(0, 0, 255)); // turn led blue
                 break;
 
             case 'r':
@@ -422,7 +422,7 @@ void Received()
             int b = comm.GetParameter(4).toInt();
 
             // Set received color
-            pixels.setPixelColor(i, CRGB(r, g, b)); // turn led blue
+            pixels.setPixelColor(i, Pixel(r, g, b)); // turn led blue
         }
 
         // Update pixels

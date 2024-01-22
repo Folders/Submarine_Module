@@ -24,6 +24,7 @@
 #include <Reactor.h>
 #include <Shield.h>
 #include <Torpedo.h>
+#include <Test.h>
 
 ////////////////////////
 
@@ -247,6 +248,9 @@ void setup()
 
     // Run timmer to try to connect Unity server
     Time_Sec.attach(1, T_1s);
+#else
+    // Status led is simu
+    pixels.staSimulation();
 #endif
 
     // Set received and send function
