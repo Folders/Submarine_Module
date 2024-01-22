@@ -216,9 +216,17 @@ void setup()
     // Call my custom setup
     MySetup();
 
+#ifdef LOG
+    Serial.println("> Finish setup");
+#endif
+
     // Define pixels property
     pixels.useInfoPixel();
     pixels.initalize();
+
+#ifdef LOG
+    Serial.println("> Finish pixels");
+#endif
 
 #ifndef STANDALONE
 
@@ -287,6 +295,9 @@ void loop()
 #endif
 
 #ifndef STANDALONE
+    // Avoid flikering of fastled
+    yield();
+
     // check if the WiFi and UDP connections were successful
     if (wifiConnected and udpConnected)
     {

@@ -4,7 +4,8 @@
 // Special library
 #include <errno.h>
 #include <vector>
-#include <FastLED.h> // header file
+//#include <FastLED.h> // header file
+#include <Adafruit_NeoPixel.h>
 
 /// @brief Convert chars to int
 /// @param p Text to convert
@@ -718,7 +719,13 @@ void MyPixels::addLeds(int number)
 void MyPixels::initalize()
 {
 
-     this->_leds = new CRGB[_numLEDs];
+#ifdef LOG
+    Serial.print("Pixels: Init ");
+    Serial.print(_numLEDs);
+    Serial.println(" pixels");
+#endif
+
+     _leds = new CRGB[_numLEDs];
 
      // FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
      FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
@@ -728,23 +735,14 @@ void MyPixels::initalize()
 void MyPixels::show()
 {
      FastLED.show();
+     this->_updateRequest = false;
+
+     yield();
 }
 
 /// @brief Update pixel output
 void MyPixels::update()
 {
-
-     if (this->_updateRequest)
-     {
-
-#ifdef LOG
-          // Log send text
-          Serial.println("LED - Update is done");
-#endif
-
-          FastLED.show();
-          this->_updateRequest = false;
-     }
 
      if (_variators.size() > 0)
      {
@@ -777,8 +775,20 @@ void MyPixels::update()
           }
 
           // Update button
-          FastLED.show();
+          show();
      }
+
+     
+     if (this->_updateRequest)
+     {
+#ifdef LOG
+          // Log send text
+          Serial.println("LED - Update is done");
+#endif
+
+          show();
+     }
+
 }
 
 void MyPixels::setPixelColor(int index, const CRGB &newColor)
@@ -800,9 +810,16 @@ void MyPixels::setPixelColor(int index, const CRGB &newColor)
                this->_updateRequest = true;
 
 #ifdef LOG
-               // Log send text
-               Serial.println("LED - Update with new color ");
+    Serial.print("Pixels: Set pixel ");
+    Serial.print(index);
+    Serial.print(" with color ");
+    Serial.print(newColor.r);
+    Serial.print(",");
+    Serial.print(newColor.g);
+    Serial.print(",");
+    Serial.println(newColor.b);
 #endif
+
           }
      }
 }
