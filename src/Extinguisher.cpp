@@ -19,14 +19,14 @@
 Adafruit_SSD1306 display(OLED_RESET);
 
 // IR
-const int LED_IR = 16;
+const int LED_IR = 4;
 
 // Buttons
-#define TRIGGER 0
-#define CONTACT 13
+#define TRIGGER 18
+#define CONTACT 19
 
 // Song
-#define PLAY_PIN 15
+//#define PLAY_PIN 15
 
 const float ANIM_FREQUENCE = 0.6;
 const int INTERRUPT_DELAY = 60;
@@ -59,6 +59,18 @@ bool a_arrowcolor;
 bool a_lightingcolor;
 bool trigger_button;
 bool contact_button;
+
+
+XT_Wav_Class ForceWithYou(Force);     // create an object of type XT_Wav_Class that is used by 
+                                      // the dac audio class (below), passing wav data as parameter.
+                                      
+XT_DAC_Audio_Class DacAudio(25,0);    // Create the main player class object. 
+                                      // Use GPIO 25, one of the 2 DAC pins and timer 0
+
+uint32_t DemoCounter=0;               // Just a counter to use in the serial monitor
+                                      // not essential to playing the sound
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -213,10 +225,15 @@ void battery_animation_1() // for using battery animation
 /// @brief play the song with a delay when using
 void play()
 {
+    DacAudio.FillBuffer();                // Fill the sound buffer with data
+  if(ForceWithYou.Playing==false)         // if not playing,
+    DacAudio.Play(&ForceWithYou);         // play it, this will cause it to repeat and repeat...
+    /*
     // turn of first for restart the song with a small delay
     digitalWrite(PLAY_PIN, LOW);
     _tempo.once_ms(INTERRUPT_DELAY, []()
                    { digitalWrite(PLAY_PIN, HIGH); });
+    */
 }
 
 /// @brief read buttons
@@ -243,8 +260,11 @@ void read_buttons()
             _Clign.attach(1, clign_symbol);
 
             // play the song
+            play();
+            /*
             digitalWrite(PLAY_PIN, HIGH);
             _play.attach(8, play);
+            */
         }
         else // if percent = 0 do nothing
         {
@@ -257,9 +277,14 @@ void read_buttons()
         comm.send("EXR;0");     //send trigger's off to server
 
         // turn off the song
+
+         DacAudio.StopAllSounds() ;
+
+        /*
         digitalWrite(PLAY_PIN, LOW);
         _play.detach();
-
+        */
+       
         // turn off the IR led
         digitalWrite(LED_IR, LOW);
 
@@ -326,8 +351,10 @@ void MySetup()
     digitalWrite(LED_IR, LOW);
 
     // SONG output
+    /*
     pinMode(PLAY_PIN, OUTPUT);
     digitalWrite(PLAY_PIN, LOW);
+    */
 
     percent = 100;
 
