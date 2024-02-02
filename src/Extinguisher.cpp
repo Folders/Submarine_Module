@@ -36,18 +36,10 @@ const int INTERRUPT_DELAY = 60;
 Bounce trigger = Bounce();
 Bounce contact = Bounce();
 
-Ticker _play;
-Ticker _tempo;
-
 // display
 int percent;
 
 // animations
-Ticker _Clign;
-Ticker _Animation;
-
-Ticker _Clign_1;
-Ticker _Animation_1;
 byte batt_lvl_charging = 9;
 byte batt_lvl_refill;
 
@@ -70,6 +62,50 @@ XT_DAC_Audio_Class DacAudio(25,0);    // Create the main player class object.
 uint32_t DemoCounter=0;               // Just a counter to use in the serial monitor
                                       // not essential to playing the sound
 
+
+/// @brief make cligning the arrow
+void clign_symbol()
+{
+    // change color with ticker
+    arrowcolor = !arrowcolor;
+}
+
+/// @brief charging battery animation
+void battery_animation() // for charging animation
+{
+    batt_lvl_charging++; // add bars to battery
+    if (batt_lvl_charging > 9)
+    {
+        batt_lvl_charging = 0; // restart charging animation
+    }
+}
+
+/// @brief make clingning the lighting
+void clign_symbol_1()
+{
+    // change color with ticker
+    lightingcolor = !lightingcolor;
+}
+
+/// @brief using battery animation
+void battery_animation_1() // for using battery animation
+{
+    batt_lvl_refill++;
+    if (batt_lvl_refill > 9)
+    {
+        batt_lvl_refill = 0;
+    }
+}
+
+
+
+// Ticker _Clign(clign_symbol, 1);
+
+Ticker _Clign;
+Ticker _Animation;
+
+Ticker _Clign_1;
+Ticker _Animation_1;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,39 +224,7 @@ void unfilling()
     display.display();
 }
 
-/// @brief make cligning the arrow
-void clign_symbol()
-{
-    // change color with ticker
-    arrowcolor = !arrowcolor;
-}
 
-/// @brief charging battery animation
-void battery_animation() // for charging animation
-{
-    batt_lvl_charging++; // add bars to battery
-    if (batt_lvl_charging > 9)
-    {
-        batt_lvl_charging = 0; // restart charging animation
-    }
-}
-
-/// @brief make clingning the lighting
-void clign_symbol_1()
-{
-    // change color with ticker
-    lightingcolor = !lightingcolor;
-}
-
-/// @brief using battery animation
-void battery_animation_1() // for using battery animation
-{
-    batt_lvl_refill++;
-    if (batt_lvl_refill > 9)
-    {
-        batt_lvl_refill = 0;
-    }
-}
 
 /// @brief play the song with a delay when using
 void play()

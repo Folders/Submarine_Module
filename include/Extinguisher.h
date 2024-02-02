@@ -21,6 +21,12 @@ void Received();
 /// @brief Function called when a message is send in close loop
 void ServerSimulation();
 
+Ticker _Clign;
+Ticker _Animation;
+
+Ticker _Clign_1;
+Ticker _Animation_1;
+
 
 #endif // FILE_H
 #endif // EXTINGUISHER
