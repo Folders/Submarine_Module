@@ -9,6 +9,8 @@
 #include <Adafruit_SSD1306.h>       //charge the Adafruit_SSD1306 Wemos Mini OLED !
 #include <Bounce2.h>
 #include <Ticker.h>
+#include "SoundData.h"
+#include "XT_DAC_Audio.h"
 
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
