@@ -61,7 +61,10 @@ void ResetModule()
     pixels.setPixelColor(1, 255, 0, 0); // turn led red
     pixels.setPixelColor(2, 0, 255, 0); // turn led red
     pixels.setPixelColor(3, 0, 0, 255); // turn led red
-    pixels.setPixelColor(4, 0, 0, 0); // turn led red
+
+    pixels.addVariator(4, Pixel(255, 128, 0), Pixel(128,255,128));
+
+    pixels.setPixelColor(5, 255, 255, 255); // turn led red
 
     pixels.show();
 }

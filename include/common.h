@@ -13,12 +13,12 @@
 #define LOG
 
 // Work without the server (put in comment to work with the server)
-#define STANDALONE
+// #define STANDALONE
 
 // Define witch module is used (ONLY ONE)
 // #define MODEL
 // #define BREACH
-// #define DIALOGUE
+#define DIALOGUE
 // #define ELECTRICITY
 // #define ENERGY
 // #define ENGINE
@@ -29,7 +29,7 @@
 // #define REACTOR
 // #define SHIELD
 // #define TORPEDO
-#define TEST
+// #define TEST
 
 // Define module number if more then one is used
 #define NUMBER 3
@@ -310,11 +310,15 @@ public:
 
     void update(Adafruit_NeoPixel *leds, float ratio)
     {
-        // Interpolation linéaire entre les deux couleurs
-        //*********************  Pixel couleurInterpolee = blend(_colorStart, _colorEnd, ratio);
+        // Assurez-vous que blendIndex est dans la plage valide (0 à 255)
+        uint8_t blendIndex = constrain(static_cast<uint8_t>(ratio), 0, 255);
 
-        // Mettre à jour la couleur de la LED
-        //********************* leds[_index] = couleurInterpolee;
+        // Calculez les nouvelles valeurs de couleur en fonction de l'indice de mélange
+        uint8_t r = (_colorStart.Red * (255 - blendIndex) + _colorEnd.Red * blendIndex) / 255;
+        uint8_t g = (_colorStart.Green * (255 - blendIndex) + _colorEnd.Green * blendIndex) / 255;
+        uint8_t b = (_colorStart.Blue * (255 - blendIndex) + _colorEnd.Blue * blendIndex) / 255;
+
+        leds->setPixelColor(_index, r, g, b);
     }
 
     int const getIndex()

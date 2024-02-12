@@ -728,10 +728,10 @@ void MyPixels::staSimulation()
      // Put the led in blue
      //_leds.setPixelColor(0, 0xFFFF00);
      _leds.setPixelColor(0, 255, 255, 0);
-     show()
+     show();
 
      // Update color
-     _leds.show();
+     //_leds.show();
 }
 
 /// @brief Add a number of led to control
@@ -770,10 +770,6 @@ void MyPixels::initalize()
 /// @brief Update pixel output
 void MyPixels::show()
 {
-
-#ifdef LOG
-     Serial.println("Pixel: Show pixels");
-#endif
 
      _leds.show();
      this->_updateRequest = false;
@@ -880,12 +876,20 @@ void MyPixels::deleteVariator(int index)
      auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index](Variator &v)
                               {
         if (v.getIndex() == index) {
-            //setPixelColor(v.index, CRGB::Black); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
+            _leds.setPixelColor(index, 0); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
             return true;
         }
         return false; });
 
      _variators.erase(it, _variators.end());
+
+#ifdef LOG
+          Serial.print("Pixels: Delete variator n°");
+          Serial.println(index);
+#endif
+
+     // Show up
+     show();
 }
 
 bool MyPixels::_asVariator(int index)
@@ -906,7 +910,7 @@ bool MyPixels::_asVariator(int index)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-//                                     Neopixel manager                                    //
+//                                      Button manager                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////   Constructor   ///////////////////////////
