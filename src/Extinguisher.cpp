@@ -8,7 +8,7 @@
 //#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>       //charge the Adafruit_SSD1306 Wemos Mini OLED !
 #include <Bounce2.h>
-// #include <Ticker.h>
+#include <Ticker.h>
 #include "SoundData.h"
 #include "XT_DAC_Audio.h"
 
@@ -335,6 +335,122 @@ void read_buttons()
     }
 }
 
+/// @brief read buttons
+void read_buttons1()
+{
+    trigger.update(); // read trigger
+    contact.update(); // read contact
+
+    if (trigger.fell()) // trigger's button has been pressed
+    {
+        Serial.println("gachette pressée");
+        comm.send("EXR;1");     //send trigger's on to server
+
+        if (percent > 0)
+        {
+            Serial.println("% > 0 : Allumer la led - Animation - Play son");
+            /*
+            digitalWrite(LED_IR, HIGH); // turn on IR led
+
+            trigger_button = true;
+            batt_lvl_charging = 9;
+
+            // start animation
+            display.clearDisplay();
+            display_battery();
+            _Animation.attach(ANIM_FREQUENCE, battery_animation);
+            _Clign.attach(1, clign_symbol);
+
+            // play the song
+            play();
+
+            */ 
+
+            /*
+            digitalWrite(PLAY_PIN, HIGH);
+            _play.attach(8, play);
+            */
+
+           
+        }
+        else // if percent = 0 do nothing
+        {
+            trigger_button = false;
+            Serial.println("% = 0 : Ne rien faire");
+        }
+    }
+
+    else if (trigger.rose()) // trigger's button has been released
+    {
+        comm.send("EXR;0");     //send trigger's off to server
+        Serial.println("gachette relachée : éteindre led, stopper son - afficher pourcent");
+
+        // turn off the song
+
+        // DacAudio.StopAllSounds() ;
+
+        /*
+        digitalWrite(PLAY_PIN, LOW);
+        _play.detach();
+        */
+       
+       /*
+        // turn off the IR led
+        digitalWrite(LED_IR, LOW);
+
+        trigger_button = false;
+
+        display.clearDisplay();
+
+        // stop animation
+        _Animation.detach();
+        _Clign.detach();
+
+        */
+    }
+
+    if (contact.fell()) // contact's button has been pressed
+    {
+        comm.send("EXC;1");     //send contact's on to server
+        Serial.println("contact appuyé");
+
+        if (percent < 100)
+        {
+            Serial.println("% < 100 : Afficher l'animation de recharge");
+            /*
+            contact_button = true;
+            display.clearDisplay();
+
+            // start charging animation
+            display_battery();
+            _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
+            _Clign_1.attach(1, clign_symbol_1);
+            */
+        }
+
+        else // if percent = 100, do nothing and stop animation
+        {
+            contact_button = false;
+            Serial.println("% = 100 : Ne rien afficher");
+        }
+    }
+
+    else if (contact.rose()) // contact's button has been released
+    {
+        comm.send("EXC;0");     //send contact's off to server
+        Serial.println("contact relaché : arrêter l'animation");
+
+        /*
+        contact_button = false;
+
+        // stop charging's animation
+        display.clearDisplay();
+        _Animation_1.detach();
+        _Clign_1.detach();
+        */
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -372,8 +488,8 @@ void MySetup()
 #endif
 
     // init temporisator for the song Ticker
-    _tempo.attach_ms(1, []() {});
-    _tempo.detach();
+  //  _tempo.attach_ms(1, []() {});
+  //  _tempo.detach();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -400,7 +516,7 @@ void MyLoop()
     comm.send();       // Send concatened variable
     */
 
-    read_buttons(); // read buttons
+    read_buttons1(); // read buttons
 
     if (trigger_button == false && contact_button == false) // no button pressed
     {
