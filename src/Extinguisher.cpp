@@ -100,13 +100,13 @@ void battery_animation_1() // for using battery animation
 
 
 // Ticker _Clign(clign_symbol, 1);
-
+/*
 Ticker _Clign;
 Ticker _Animation;
 
 Ticker _Clign_1;
 Ticker _Animation_1;
-
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -241,101 +241,6 @@ void play()
 }
 
 /// @brief read buttons
-void read_buttons()
-{
-    trigger.update(); // read trigger
-    contact.update(); // read contact
-
-    if (trigger.fell()) // trigger's button has been pressed
-    {
-        comm.send("EXR;1");     //send trigger's on to server
-
-        if (percent > 0)
-        {
-            digitalWrite(LED_IR, HIGH); // turn on IR led
-
-            trigger_button = true;
-            batt_lvl_charging = 9;
-
-            // start animation
-            display.clearDisplay();
-            display_battery();
-            _Animation.attach(ANIM_FREQUENCE, battery_animation);
-            _Clign.attach(1, clign_symbol);
-
-            // play the song
-            play();
-            /*
-            digitalWrite(PLAY_PIN, HIGH);
-            _play.attach(8, play);
-            */
-        }
-        else // if percent = 0 do nothing
-        {
-            trigger_button = false;
-        }
-    }
-
-    else if (trigger.rose()) // trigger's button has been released
-    {
-        comm.send("EXR;0");     //send trigger's off to server
-
-        // turn off the song
-
-         DacAudio.StopAllSounds() ;
-
-        /*
-        digitalWrite(PLAY_PIN, LOW);
-        _play.detach();
-        */
-       
-        // turn off the IR led
-        digitalWrite(LED_IR, LOW);
-
-        trigger_button = false;
-
-        display.clearDisplay();
-
-        // stop animation
-        _Animation.detach();
-        _Clign.detach();
-    }
-
-    if (contact.fell()) // contact's button has been pressed
-    {
-        comm.send("EXC;1");     //send contact's on to server
-
-        if (percent < 100)
-        {
-            contact_button = true;
-            display.clearDisplay();
-
-            // start charging animation
-            display_battery();
-            _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
-            _Clign_1.attach(1, clign_symbol_1);
-        }
-
-        else // if percent = 100, do nothing and stop animation
-        {
-            contact_button = false;
-        }
-    }
-
-    else if (contact.rose()) // contact's button has been released
-    {
-        comm.send("EXC;0");     //send contact's off to server
-
-        contact_button = false;
-
-        // stop charging's animation
-        display.clearDisplay();
-        _Animation_1.detach();
-        _Clign_1.detach();
-    }
-}
-
-/// @brief read buttons
 void read_buttons1()
 {
     trigger.update(); // read trigger
@@ -459,8 +364,8 @@ void read_buttons1()
 void MySetup()
 {
     // set input's IO
-    pinMode(TRIGGER, INPUT);
-    pinMode(CONTACT, INPUT);
+    pinMode(TRIGGER, INPUT_PULLUP);
+    pinMode(CONTACT, INPUT_PULLUP);
     trigger.attach(TRIGGER);
     trigger.interval(5);
     contact.attach(CONTACT);
@@ -518,6 +423,8 @@ void MyLoop()
 
     read_buttons1(); // read buttons
 
+    /*
+
     if (trigger_button == false && contact_button == false) // no button pressed
     {
         display_percent();
@@ -532,6 +439,8 @@ void MyLoop()
     {
         refilling(); // refilling animation
     }
+
+    */
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,5 +516,108 @@ void ServerSimulation()
     }
 
 }
+
+/*
+
+
+/// @brief read buttons
+void read_buttons()
+{
+    trigger.update(); // read trigger
+    contact.update(); // read contact
+
+    if (trigger.fell()) // trigger's button has been pressed
+    {
+        comm.send("EXR;1");     //send trigger's on to server
+
+        if (percent > 0)
+        {
+            digitalWrite(LED_IR, HIGH); // turn on IR led
+
+            trigger_button = true;
+            batt_lvl_charging = 9;
+
+            // start animation
+            display.clearDisplay();
+            display_battery();
+            _Animation.attach(ANIM_FREQUENCE, battery_animation);
+            _Clign.attach(1, clign_symbol);
+
+            // play the song
+            play();
+            /*
+            digitalWrite(PLAY_PIN, HIGH);
+            _play.attach(8, play);
+            
+        }
+        else // if percent = 0 do nothing
+        {
+            trigger_button = false;
+        }
+    }
+
+    else if (trigger.rose()) // trigger's button has been released
+    {
+        comm.send("EXR;0");     //send trigger's off to server
+
+        // turn off the song
+
+         DacAudio.StopAllSounds() ;
+
+        /*
+        digitalWrite(PLAY_PIN, LOW);
+        _play.detach();
+        
+       
+        // turn off the IR led
+        digitalWrite(LED_IR, LOW);
+
+        trigger_button = false;
+
+        display.clearDisplay();
+
+        // stop animation
+        _Animation.detach();
+        _Clign.detach();
+    }
+
+    if (contact.fell()) // contact's button has been pressed
+    {
+        comm.send("EXC;1");     //send contact's on to server
+
+        if (percent < 100)
+        {
+            contact_button = true;
+            display.clearDisplay();
+
+            // start charging animation
+            display_battery();
+            _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
+            _Clign_1.attach(1, clign_symbol_1);
+        }
+
+        else // if percent = 100, do nothing and stop animation
+        {
+            contact_button = false;
+        }
+    }
+
+    else if (contact.rose()) // contact's button has been released
+    {
+        comm.send("EXC;0");     //send contact's off to server
+
+        contact_button = false;
+
+        // stop charging's animation
+        display.clearDisplay();
+        _Animation_1.detach();
+        _Clign_1.detach();
+    }
+}
+
+
+
+
+*/
 
 #endif
