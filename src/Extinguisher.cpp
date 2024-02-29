@@ -78,7 +78,7 @@ void clign_symbol()
 void battery_animation() // for charging animation
 {
     batt_lvl_charging++; // add bars to battery
-    if (batt_lvl_charging > 9)
+    if (batt_lvl_charging > 11)
     {
         batt_lvl_charging = 0; // restart charging animation
     }
@@ -95,7 +95,7 @@ void clign_symbol_1()
 void battery_animation_1() // for using battery animation
 {
     batt_lvl_refill++;
-    if (batt_lvl_refill > 9)
+    if (batt_lvl_refill > 11)
     {
         batt_lvl_refill = 0;
     }
@@ -134,24 +134,24 @@ void display_percent()
 
     // Ajustez la taille et la position en fonction de la résolution plus grande
     if (percent < 10 && percent > 0) { // for centering the text when 1-10
-        display.setTextSize(2); // Ajusté pour l'écran plus grand
-        display.setCursor(48, 20); // Centré sur un écran plus large
+        display.setTextSize(5); // Ajusté pour l'écran plus grand
+        display.setCursor(40, 15); // Centré sur un écran plus large
         display.print(percent);
-        display.setTextSize(2);
         display.print("%");
     } else if (percent == 0) { //bigger size if percent = 0
         display.setTextSize(2);
-        display.setCursor(40, 20); // Ajustement pour le centrage
+        display.setCursor(55, 15); // Ajustement pour le centrage
         display.print("0%");
         display.println();
+        display.setCursor(38, 35); 
         display.println("vide!");
     } else if (percent == 100) { //smaller size if percent = 100
-        display.setTextSize(2);
-        display.setCursor(24, 20); // Ajusté pour l'écran plus grand
+        display.setTextSize(4);
+        display.setCursor(18, 18); // Ajusté pour l'écran plus grand
         display.print("100%");
     } else if (percent >= 10 && percent < 100) { // affich the percent with the "%" symbol
-        display.setTextSize(2);
-        display.setCursor(40, 20); // Ajusté pour un écran plus large
+        display.setTextSize(4);
+        display.setCursor(32, 17); // Ajusté pour un écran plus large
         display.print(percent);
         display.print("%");
     }
@@ -161,17 +161,56 @@ void display_percent()
 }
 
 /// @brief draw a battery symbol
-void display_battery()
+void display_battery_unfill()
 {
-    // draw BATTERY
-    display.drawRect(16, 16, 31, 16, WHITE);
-    display.drawRect(47, 22, 2, 4, WHITE);
+    // Draw the outer battery rectangle
+    display.drawRect(20, 10, 90, 44, WHITE); // Outer rectangle adjusted to specified dimensions
 
-    // draw battery bars
+    // Draw the "head" of the battery on the right side
+    display.drawRect(110, 24, 4, 16, WHITE); // Position and dimensions adjusted for "head"
+
+    // Draw the battery level indicators inside
+    for (int i = 0; i < 11; i++) {
+        // Adjust the positions and dimensions to fit within the new battery outline
+        display.fillRect((22 + i * 8), 12, 6, 40, WHITE); // Spacing adjusted for inside the rectangle
+    }
+
+  
+    a_arrowcolor = arrowcolor ? BLACK : WHITE; // change arrow's logo color
+    display.fillRect(8, 29, 8, 5, a_arrowcolor); // Ajusté pour l'écran plus grand
+    display.fillTriangle(2, 31, 8, 27, 8, 35, a_arrowcolor); // 
+    
+    for (int i = 0; i < 11; i++) {
+    if (i < batt_lvl_charging) {
+        // Effacez chaque rectangle en fonction du niveau de déchargement
+        // En noircissant les rectangles de droite à gauche
+        display.fillRect((22 + (10 - i) * 8), 12, 6, 40, BLACK);
+    }
+}
+
+
+    display.display();
+}
+
+void display_battery_refill()
+{
+    // Draw the outer battery rectangle
+    display.drawRect(20, 10, 90, 44, WHITE); // Outer rectangle adjusted to specified dimensions
+
+    // Draw the "head" of the battery on the right side
+    display.drawRect(110, 24, 4, 16, WHITE); // Position and dimensions adjusted for "head"
+
+      for (int i = 0; i < batt_lvl_refill && i < 11; i++) {
+        display.fillRect((22 + i * 8), 12, 6, 40, WHITE); // Remplit les rectangles un par un
+    }
+
+        // refilling effect
     for (int i = 0; i < 10; i++)
     {
         display.drawRect((45 - (i * 3)), 16, 2, 16, WHITE);
     }
+    display.fillRect((17 + (batt_lvl_refill * 3)), 17, (29 - (batt_lvl_refill * 3)), 14, BLACK);
+
 
     display.display();
 }
@@ -251,7 +290,7 @@ void read_buttons()
 
             // start animation
             display.clearDisplay();
-            display_battery();
+           display_battery_unfill();
            // _Animation.attach(ANIM_FREQUENCE, battery_animation);
            // _Clign.attach(1, clign_symbol);
 
@@ -303,7 +342,7 @@ void read_buttons()
             display.clearDisplay();
 
             // start charging animation
-            display_battery();
+            display_battery_refill();
            // _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
            // _Clign_1.attach(1, clign_symbol_1);
         }
@@ -407,6 +446,7 @@ void MyLoop()
     _Clign_1.update();
     _Animation.update();
      _Animation_1.update();
+     display_battery_refill();
 /*
     
     read_buttons(); // read buttons
