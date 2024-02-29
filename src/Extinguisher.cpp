@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 //////// Add new include library
-//#include <Wire.h>
-//#include <Adafruit_GFX.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>       //charge the Adafruit_SSD1306 Wemos Mini OLED !
 #include <Bounce2.h>
 #include <Ticker.h>
@@ -15,8 +15,12 @@
 ////////  Define global constantes      (ALWAYS IN MAJ)
 
 // OLED
-#define OLED_RESET 14
-Adafruit_SSD1306 display(OLED_RESET);
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire,OLED_RESET);
 
 // IR
 const int LED_IR = 4;
@@ -346,8 +350,8 @@ void read_buttons()
 void MySetup()
 {
     // set input's IO
-    pinMode(TRIGGER, INPUT);
-    pinMode(CONTACT, INPUT);
+    pinMode(TRIGGER, INPUT_PULLUP);
+    pinMode(CONTACT, INPUT_PULLUP);
     trigger.attach(TRIGGER);
     trigger.interval(5);
     contact.attach(CONTACT);
@@ -366,9 +370,22 @@ void MySetup()
     percent = 100;
 
     // display setup
-    display.begin(SSD1306_SWITCHCAPVCC);
-    display.clearDisplay();
-    display.display();
+if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+  display.display();
+  // Clear the buffer
+  display.clearDisplay();
+
+  // Draw a single pixel in white
+  display.drawPixel(10, 10, SSD1306_WHITE);
+  display.drawPixel(20, 30, SSD1306_WHITE);
+
+  // Show the display buffer on the screen. You MUST call display() after
+  // drawing commands to make them visible on screen!
+  display.display();
 
 #ifdef LOG
     Serial.println("Start");
@@ -412,7 +429,8 @@ void MyLoop()
     _Clign_1.update();
     _Animation.update();
      _Animation_1.update();
-
+/*
+    
     read_buttons(); // read buttons
 
     if (trigger_button == false && contact_button == false) // no button pressed
@@ -429,6 +447,8 @@ void MyLoop()
     {
         refilling(); // refilling animation
     }
+
+    */
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
