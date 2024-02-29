@@ -47,7 +47,7 @@ int percent;
 byte batt_lvl_charging = 9;
 byte batt_lvl_refill;
 
-bool filling_state;
+//bool filling_state;
 
 bool arrowcolor;
 bool lightingcolor;
@@ -68,14 +68,14 @@ uint32_t DemoCounter=0;               // Just a counter to use in the serial mon
 
 
 /// @brief make cligning the arrow
-void clign_symbol()
+void clign_symbol_arrow()
 {
     // change color with ticker
     arrowcolor = !arrowcolor;
 }
 
 /// @brief charging battery animation
-void battery_animation() // for charging animation
+void refill_battery_animation() // for charging animation
 {
     batt_lvl_charging++; // add bars to battery
     if (batt_lvl_charging > 11)
@@ -85,14 +85,14 @@ void battery_animation() // for charging animation
 }
 
 /// @brief make clingning the lighting
-void clign_symbol_1()
+void clign_symbol_lighting()
 {
     // change color with ticker
     lightingcolor = !lightingcolor;
 }
 
 /// @brief using battery animation
-void battery_animation_1() // for using battery animation
+void using_battery_animation() // for using battery animation
 {
     batt_lvl_refill++;
     if (batt_lvl_refill > 11)
@@ -101,29 +101,15 @@ void battery_animation_1() // for using battery animation
     }
 }
 
-Ticker _Clign(clign_symbol, 1000, 0, MILLIS);
-Ticker _Clign_1(clign_symbol_1, 1000, 0, MILLIS);
-Ticker _Animation(battery_animation, (1000*ANIM_FREQUENCE), 0, MILLIS);
-Ticker _Animation_1(battery_animation_1, (1000*ANIM_FREQUENCE), 0, MILLIS);
-
-// Ticker _Clign;
-//Ticker _Animation;
-
-
-
-// Ticker _Clign_1;
-//Ticker _Animation_1;
+Ticker _Clign(clign_symbol_arrow, 1000, 0, MILLIS);
+Ticker _Clign_1(clign_symbol_lighting, 1000, 0, MILLIS);
+Ticker _Animation(refill_battery_animation, (1000*ANIM_FREQUENCE), 0, MILLIS);
+Ticker _Animation_1(using_battery_animation, (1000*ANIM_FREQUENCE), 0, MILLIS);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-/// @brief Si je tape ///, il me propose de mettre des commentaires à la fonction
-void my_function()
-{
-    // ...
-}
 
 /// @brief //display percent on OLED
 void display_percent()
@@ -163,6 +149,8 @@ void display_percent()
 /// @brief draw a battery symbol
 void display_battery_unfill()
 {
+    display.clearDisplay();
+
     // Draw the outer battery rectangle
     display.drawRect(20, 10, 90, 44, WHITE); // Outer rectangle adjusted to specified dimensions
 
@@ -187,34 +175,37 @@ void display_battery_unfill()
         display.fillRect((22 + (10 - i) * 8), 12, 6, 40, BLACK);
     }
 }
-
-
     display.display();
 }
 
 void display_battery_refill()
 {
+   display.clearDisplay();
     // Draw the outer battery rectangle
     display.drawRect(20, 10, 90, 44, WHITE); // Outer rectangle adjusted to specified dimensions
 
     // Draw the "head" of the battery on the right side
     display.drawRect(110, 24, 4, 16, WHITE); // Position and dimensions adjusted for "head"
 
-      for (int i = 0; i < batt_lvl_refill && i < 11; i++) {
+      for (int i = 0; i <= batt_lvl_refill && i <= 11; i++) {
+        if (i<=10){
         display.fillRect((22 + i * 8), 12, 6, 40, WHITE); // Remplit les rectangles un par un
+        }
+        if (i==11)
+      {
+        display.fillRect(21, 11, 88, 42, BLACK);
+      }
     }
 
-        // refilling effect
-    for (int i = 0; i < 10; i++)
-    {
-        display.drawRect((45 - (i * 3)), 16, 2, 16, WHITE);
-    }
-    display.fillRect((17 + (batt_lvl_refill * 3)), 17, (29 - (batt_lvl_refill * 3)), 14, BLACK);
-
+        // lighting symbol
+    a_lightingcolor = lightingcolor ? BLACK : WHITE; // change lighing's symbol color
+    display.fillTriangle(12, 26, 8, 33, 12, 31, a_lightingcolor);
+    display.fillTriangle(10, 37, 10, 32, 14, 29, a_lightingcolor);
 
     display.display();
 }
 
+/*
 /// @brief refilling animation
 void refilling()
 {
@@ -254,7 +245,7 @@ void unfilling()
     }
     display.display();
 }
-
+*/
 
 
 /// @brief play the song with a delay when using
@@ -280,6 +271,9 @@ void read_buttons()
     if (trigger.fell()) // trigger's button has been pressed
     {
         comm.send("EXR;1");     //send trigger's on to server
+        #ifdef LOG
+    Serial.println("Trigger button pressed");
+#endif  
 
         if (percent > 0)
         {
@@ -289,8 +283,8 @@ void read_buttons()
             batt_lvl_charging = 9;
 
             // start animation
-            display.clearDisplay();
-           display_battery_unfill();
+          //  display.clearDisplay();
+           //display_battery_unfill();
            // _Animation.attach(ANIM_FREQUENCE, battery_animation);
            // _Clign.attach(1, clign_symbol);
 
@@ -310,6 +304,9 @@ void read_buttons()
     else if (trigger.rose()) // trigger's button has been released
     {
         comm.send("EXR;0");     //send trigger's off to server
+                #ifdef LOG
+    Serial.println("Trigger button released");
+#endif  
 
         // turn off the song
 
@@ -325,7 +322,7 @@ void read_buttons()
 
         trigger_button = false;
 
-        display.clearDisplay();
+       // display.clearDisplay();
 
         // stop animation
        // _Animation.detach();
@@ -335,14 +332,17 @@ void read_buttons()
     if (contact.fell()) // contact's button has been pressed
     {
         comm.send("EXC;1");     //send contact's on to server
+                #ifdef LOG
+    Serial.println("Contact button pressed");
+#endif  
 
         if (percent < 100)
         {
             contact_button = true;
-            display.clearDisplay();
+         //   display.clearDisplay();
 
             // start charging animation
-            display_battery_refill();
+        //    display_battery_refill();
            // _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
            // _Clign_1.attach(1, clign_symbol_1);
         }
@@ -356,11 +356,14 @@ void read_buttons()
     else if (contact.rose()) // contact's button has been released
     {
         comm.send("EXC;0");     //send contact's off to server
+                #ifdef LOG
+    Serial.println("Contact button released");
+#endif  
 
         contact_button = false;
 
         // stop charging's animation
-        display.clearDisplay();
+       // display.clearDisplay();
        // _Animation_1.detach();
         // _Clign_1.detach();
     }
@@ -446,8 +449,8 @@ void MyLoop()
     _Clign_1.update();
     _Animation.update();
      _Animation_1.update();
-     display_battery_refill();
-/*
+
+
     
     read_buttons(); // read buttons
 
@@ -458,15 +461,15 @@ void MyLoop()
 
     if (trigger_button == true && percent > 0) // trigger button pressed
     {
-        unfilling(); // unfilling animation
+        display_battery_unfill(); // unfilling animation
     }
 
     if (contact_button == true && percent < 100) // contact button pressed
     {
-        refilling(); // refilling animation
+        display_battery_refill(); // refilling animation
     }
 
-    */
+    
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
