@@ -8,7 +8,7 @@
 //#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>       //charge the Adafruit_SSD1306 Wemos Mini OLED !
 #include <Bounce2.h>
-// #include <Ticker.h>
+#include <Ticker.h>
 #include "SoundData.h"
 #include "XT_DAC_Audio.h"
 
@@ -97,15 +97,18 @@ void battery_animation_1() // for using battery animation
     }
 }
 
+Ticker _Clign(clign_symbol, 1000, 0, MILLIS);
+Ticker _Clign_1(clign_symbol_1, 1000, 0, MILLIS);
+Ticker _Animation(battery_animation, (1000*ANIM_FREQUENCE), 0, MILLIS);
+Ticker _Animation_1(battery_animation_1, (1000*ANIM_FREQUENCE), 0, MILLIS);
+
+// Ticker _Clign;
+//Ticker _Animation;
 
 
-// Ticker _Clign(clign_symbol, 1);
 
-Ticker _Clign;
-Ticker _Animation;
-
-Ticker _Clign_1;
-Ticker _Animation_1;
+// Ticker _Clign_1;
+//Ticker _Animation_1;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,8 +263,8 @@ void read_buttons()
             // start animation
             display.clearDisplay();
             display_battery();
-            _Animation.attach(ANIM_FREQUENCE, battery_animation);
-            _Clign.attach(1, clign_symbol);
+           // _Animation.attach(ANIM_FREQUENCE, battery_animation);
+           // _Clign.attach(1, clign_symbol);
 
             // play the song
             play();
@@ -297,8 +300,8 @@ void read_buttons()
         display.clearDisplay();
 
         // stop animation
-        _Animation.detach();
-        _Clign.detach();
+       // _Animation.detach();
+       // _Clign.detach();
     }
 
     if (contact.fell()) // contact's button has been pressed
@@ -312,8 +315,8 @@ void read_buttons()
 
             // start charging animation
             display_battery();
-            _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
-            _Clign_1.attach(1, clign_symbol_1);
+           // _Animation_1.attach(ANIM_FREQUENCE, battery_animation_1);
+           // _Clign_1.attach(1, clign_symbol_1);
         }
 
         else // if percent = 100, do nothing and stop animation
@@ -330,8 +333,8 @@ void read_buttons()
 
         // stop charging's animation
         display.clearDisplay();
-        _Animation_1.detach();
-        _Clign_1.detach();
+       // _Animation_1.detach();
+        // _Clign_1.detach();
     }
 }
 
@@ -369,11 +372,16 @@ void MySetup()
 
 #ifdef LOG
     Serial.println("Start");
-#endif
+#endif  
+
+_Clign.start();
+_Clign_1.start();
+_Animation.start();
+_Animation_1.start();
 
     // init temporisator for the song Ticker
-    _tempo.attach_ms(1, []() {});
-    _tempo.detach();
+    //_tempo.attach_ms(1, []() {});
+   // _tempo.detach();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -399,6 +407,11 @@ void MyLoop()
     //comm.add(testInt); // Add from variable
     comm.send();       // Send concatened variable
     */
+
+    _Clign.update();
+    _Clign_1.update();
+    _Animation.update();
+     _Animation_1.update();
 
     read_buttons(); // read buttons
 
