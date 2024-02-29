@@ -132,47 +132,32 @@ void display_percent()
     display.clearDisplay();
     display.setTextColor(WHITE);
 
-    if (percent < 10 && percent > 0) // for centering the text when 1-10
-    {
-        display.setTextSize(5);
-        display.setCursor(20, 4);
+    // Ajustez la taille et la position en fonction de la résolution plus grande
+    if (percent < 10 && percent > 0) { // for centering the text when 1-10
+        display.setTextSize(2); // Ajusté pour l'écran plus grand
+        display.setCursor(48, 20); // Centré sur un écran plus large
         display.print(percent);
-        display.setCursor(50, 4);
-        display.setTextSize(1);
-        display.print("%");
-    }
-
-    else if (percent == 0)      //bigger size if percent = 0
-    {
-        display.setTextSize(3);
-        display.setCursor(14, 0);
-        display.print("0%");
         display.setTextSize(2);
-        display.println();
+        display.print("%");
+    } else if (percent == 0) { //bigger size if percent = 0
+        display.setTextSize(2);
+        display.setCursor(40, 20); // Ajustement pour le centrage
+        display.print("0%");
         display.println();
         display.println("vide!");
-    }
-
-    else if (percent == 100)        //smaller size if percent = 100
-    {
-        display.setTextSize(3);
-        display.setCursor(0, 15);
-        display.print("100");
-        display.setTextSize(1);
-        display.print("%");
-    }
-
-    else if (percent >= 10 && percent < 100) // affich the percent with the "%" symbol
-    {
-        display.setTextSize(4, 5);
-        display.setCursor(8, 5);
+    } else if (percent == 100) { //smaller size if percent = 100
+        display.setTextSize(2);
+        display.setCursor(24, 20); // Ajusté pour l'écran plus grand
+        display.print("100%");
+    } else if (percent >= 10 && percent < 100) { // affich the percent with the "%" symbol
+        display.setTextSize(2);
+        display.setCursor(40, 20); // Ajusté pour un écran plus large
         display.print(percent);
-        display.setCursor(55, 4);
-        display.setTextSize(1);
         display.print("%");
     }
 
     display.display();
+    
 }
 
 /// @brief draw a battery symbol
@@ -378,13 +363,6 @@ if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
   display.display();
   // Clear the buffer
   display.clearDisplay();
-
-  // Draw a single pixel in white
-  display.drawPixel(10, 10, SSD1306_WHITE);
-  display.drawPixel(20, 30, SSD1306_WHITE);
-
-  // Show the display buffer on the screen. You MUST call display() after
-  // drawing commands to make them visible on screen!
   display.display();
 
 #ifdef LOG
