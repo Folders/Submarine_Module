@@ -58,8 +58,8 @@ XT_Wav_Class ForceWithYou(Force);   // create an object of type XT_Wav_Class tha
                                     // the dac audio class (below), passing wav data as parameter.
 XT_DAC_Audio_Class DacAudio(25, 0); // Create the main player class object.
                                     // Use GPIO 25, one of the 2 DAC pins and timer 0
-uint32_t DemoCounter = 0;           // Just a counter to use in the serial monitor
-                                    // not essential to playing the sound
+bool play_song;
+
 
 /// @brief make cligning the arrow
 void clign_symbol_arrow()
@@ -207,13 +207,6 @@ void display_battery_refill()
     display.display();
 }
 
-/// @brief play the song
-void play()
-{
-    DacAudio.FillBuffer();             // Fill the sound buffer with data
-    if (ForceWithYou.Playing == false) // if not playing,
-        DacAudio.Play(&ForceWithYou);  // play it, this will cause it to repeat and repeat...
-}
 
 /// @brief read buttons
 void read_buttons()
@@ -236,11 +229,12 @@ void read_buttons()
             batt_lvl_charging = 9;
 
             // play the song
-            play();
+            play_song = true ;
         }
         else // if percent = 0 do nothing
         {
             trigger_button = false;
+            play_song = false;
         }
     }
 
@@ -256,6 +250,7 @@ void read_buttons()
 
         // turn off the IR led
         digitalWrite(LED_IR, LOW);
+        play_song = false;
 
         trigger_button = false;
     }
@@ -367,6 +362,26 @@ void MyLoop()
     {
         display_battery_refill(); // refilling animation
     }
+
+    if (play_song == true)
+    {
+            DacAudio.FillBuffer();             // Fill the sound buffer with data
+    if (ForceWithYou.Playing == false) // if not playing,
+        DacAudio.Play(&ForceWithYou);  // play it, this will cause it to repeat and repeat...
+        #ifdef LOG
+        Serial.println("Should be playing");
+#endif
+    }
+
+        if (play_song == false)
+    {
+        DacAudio.StopAllSounds();
+        #ifdef LOG
+        Serial.println("Stop playing");
+#endif
+    }
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
