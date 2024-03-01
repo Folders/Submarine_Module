@@ -30,7 +30,7 @@ const int LED_IR = 4;
 #define CONTACT 19
 
 // Song
-// #define PLAY_PIN 15
+#define CONTROL_PIN 12
 
 const float ANIM_FREQUENCE = 0.6; // animation frequencie
 
@@ -59,7 +59,6 @@ XT_Wav_Class ForceWithYou(Force);   // create an object of type XT_Wav_Class tha
 XT_DAC_Audio_Class DacAudio(25, 0); // Create the main player class object.
                                     // Use GPIO 25, one of the 2 DAC pins and timer 0
 bool play_song;
-
 
 /// @brief make cligning the arrow
 void clign_symbol_arrow()
@@ -207,7 +206,6 @@ void display_battery_refill()
     display.display();
 }
 
-
 /// @brief read buttons
 void read_buttons()
 {
@@ -229,7 +227,7 @@ void read_buttons()
             batt_lvl_charging = 9;
 
             // play the song
-            play_song = true ;
+            play_song = true;
         }
         else // if percent = 0 do nothing
         {
@@ -246,7 +244,7 @@ void read_buttons()
 #endif
 
         // turn off the song
-       // DacAudio.StopAllSounds();
+        // DacAudio.StopAllSounds();
 
         // turn off the IR led
         digitalWrite(LED_IR, LOW);
@@ -326,6 +324,11 @@ void MySetup()
     _Clign_1.start();
     _Animation.start();
     _Animation_1.start();
+
+    // Sound setup
+    pinMode(CONTROL_PIN, OUTPUT);
+    // Pour activer le transistor et donc le signal
+    digitalWrite(CONTROL_PIN, LOW);
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -345,7 +348,7 @@ void MyLoop()
     _Clign_1.update();
     _Animation.update();
     _Animation_1.update();
-    DacAudio.FillBuffer();             // Fill the sound buffer with data
+    DacAudio.FillBuffer(); // Fill the sound buffer with data
 
     read_buttons(); // read buttons
 
@@ -366,17 +369,16 @@ void MyLoop()
 
     if (play_song == true)
     {
-            
-    if (ForceWithYou.Playing == false) // if not playing,
-        DacAudio.Play(&ForceWithYou);  // play it, this will cause it to repeat and repeat...
+        digitalWrite(CONTROL_PIN, HIGH);
+        if (ForceWithYou.Playing == false) // if not playing,
+            DacAudio.Play(&ForceWithYou);  // play it, this will cause it to repeat and repeat...
     }
 
-        if (play_song == false)
+    if (play_song == false)
     {
+        digitalWrite(CONTROL_PIN, LOW);
         DacAudio.StopAllSounds();
     }
-
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
