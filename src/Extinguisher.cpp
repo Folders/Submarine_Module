@@ -246,7 +246,7 @@ void read_buttons()
 #endif
 
         // turn off the song
-        DacAudio.StopAllSounds();
+       // DacAudio.StopAllSounds();
 
         // turn off the IR led
         digitalWrite(LED_IR, LOW);
@@ -345,6 +345,7 @@ void MyLoop()
     _Clign_1.update();
     _Animation.update();
     _Animation_1.update();
+    DacAudio.FillBuffer();             // Fill the sound buffer with data
 
     read_buttons(); // read buttons
 
@@ -365,20 +366,14 @@ void MyLoop()
 
     if (play_song == true)
     {
-            DacAudio.FillBuffer();             // Fill the sound buffer with data
+            
     if (ForceWithYou.Playing == false) // if not playing,
         DacAudio.Play(&ForceWithYou);  // play it, this will cause it to repeat and repeat...
-        #ifdef LOG
-        Serial.println("Should be playing");
-#endif
     }
 
         if (play_song == false)
     {
         DacAudio.StopAllSounds();
-        #ifdef LOG
-        Serial.println("Stop playing");
-#endif
     }
 
 
