@@ -199,6 +199,9 @@ void MyComm::sendForced(String s)
 
      // Call send to server function
      sendForced();
+
+     // Clear buffer
+     str_out.clear();
 }
 
 void MyComm::sendForced()
