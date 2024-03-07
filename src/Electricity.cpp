@@ -294,6 +294,7 @@ void MySetup()
 
     // Define pixels property
     pixels.addLeds(NB_PIXELS);
+    //pixels.useInfoPixel();
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////

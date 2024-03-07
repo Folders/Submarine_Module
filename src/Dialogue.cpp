@@ -204,6 +204,7 @@ void MySetup()
 
     // Define pixels property
     pixels.addLeds(5);
+    pixels.useInfoPixel();
 
 }
 

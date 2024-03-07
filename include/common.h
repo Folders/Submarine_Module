@@ -233,6 +233,8 @@ private:
     /// @brief Current brigntness of the pixel, 0 is disabled, 1 is min and 255 is max.
     uint8_t _brightness = 0;
 
+
+
 public:
     /// @brief Create a pixel object
     Pixel();
@@ -515,8 +517,11 @@ private:
     /// @brief Output to control the leds (default = 0)
     int _output;
 
-    /// @brief If the led is one
+    /// @brief Info led is used
     bool _asInfo = false;
+
+    /// @brief Backup color of info led 
+    uint32_t _infoCOlor = 0;
 
     /// @brief An update is requered
     bool _updateRequest;

@@ -685,9 +685,11 @@ void MyPixels::staWaitWifi()
 #ifdef LOG
      Serial.println("Status: Wait wifi");
 #endif
+     // Backup of color
+     _infoCOlor = 0x0000FF;
 
      // Put the led in blue
-     _leds.setPixelColor(0, 0x0000FF);
+     _leds.setPixelColor(0, _infoCOlor);
 
      // Update color
      _leds.show();
@@ -699,9 +701,11 @@ void MyPixels::staWaitServer()
 #ifdef LOG
      Serial.println("Status: Wait server");
 #endif
+     // Backup of color
+     _infoCOlor = 0xEE82EE;
 
      // Put the led in blue
-     _leds.setPixelColor(0, 0xEE82EE);
+     _leds.setPixelColor(0, _infoCOlor);
 
      // Update color
      _leds.show();
@@ -713,9 +717,11 @@ void MyPixels::staConnected()
 #ifdef LOG
      Serial.println("Status: Connected");
 #endif
+     // Backup of color
+     _infoCOlor = 0x32CD32;
 
      // Put the led in blue
-     _leds.setPixelColor(0, 0x32CD32);
+     _leds.setPixelColor(0, _infoCOlor);
 
      // Update color
      _leds.show();
@@ -727,14 +733,14 @@ void MyPixels::staSimulation()
 #ifdef LOG
      Serial.println("Status: In simulation");
 #endif
+     // Backup of color
+     _infoCOlor = 0xFFFF00;
 
-     // Put the led in blue
-     //_leds.setPixelColor(0, 0xFFFF00);
-     _leds.setPixelColor(0, 255, 255, 0);
-     show();
+     // Put the led in color
+     _leds.setPixelColor(0, _infoCOlor);
 
      // Update color
-     //_leds.show();
+     _leds.show();
 }
 
 /// @brief Add a number of led to control
@@ -773,17 +779,18 @@ void MyPixels::initalize()
 /// @brief Clear every led and 
 void MyPixels::clear()
 {
+     // Clear all led
      _leds.clear();
 
      // Set status led back
-     todo
+     if (_asInfo)
+          _leds.setPixelColor(0, _infoCOlor);
 
      // Delete all variator
-     todo
+     _variators.clear();
 
      // Update leds
      _leds.show();
-
 }
 
 

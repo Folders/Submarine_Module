@@ -222,7 +222,6 @@ void setup()
 #endif
 
     // Define pixels property
-    pixels.useInfoPixel();
     pixels.initalize();
 
 #ifdef LOG
