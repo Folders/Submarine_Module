@@ -669,7 +669,7 @@ MyPixels::MyPixels()
      this->_asInfo = false;
 }
 
-/// @brief Create a pixel object
+/// @brief Use the first pixel as status info. Need to be done in MySetup
 void MyPixels::useInfoPixel()
 {
      // Add the number of pixel
@@ -729,7 +729,7 @@ void MyPixels::staConnected()
 
 /// @brief Module is in simulation (Yellow)
 void MyPixels::staSimulation()
-{ 
+{
 #ifdef LOG
      Serial.println("Status: In simulation");
 #endif
@@ -743,7 +743,7 @@ void MyPixels::staSimulation()
      _leds.show();
 }
 
-/// @brief Add a number of led to control
+/// @brief Add a number of led to control. Need to be done in MySetup
 /// @param number Number of led in the project
 void MyPixels::addLeds(int number)
 {
@@ -751,32 +751,15 @@ void MyPixels::addLeds(int number)
      this->_numLEDs = this->_numLEDs + number;
 }
 
-/// @brief Initalize the leds controler. Do not used, already done in master
-void MyPixels::initalize()
+/// @brief Step added in every cycle to make the animation. The value will move from 0 to 255
+/// @param step Value added in the variation step, default is 1, need to change depanding of the load of IC)
+void MyPixels::timeVariator(float step)
 {
-
-#ifdef LOG
-     Serial.print("Pixels: Init ");
-     Serial.print(_numLEDs);
-     Serial.println(" pixels");
-#endif
-
-     //_leds = new CRGB[_numLEDs];
-
-     // FastLED.addLeds<WS2812, _output, GRB>(_leds, _numLEDs);
-     // FastLED.addLeds<WS2812, 0, GRB>(_leds, _numLEDs);
-
-     _leds.updateLength(_numLEDs);
-     _leds.updateType(NEO_GRB + NEO_KHZ800);
-     _leds.setPin(0);
-
-     _leds.begin();
-
-     _leds.clear();
-     _leds.show();
+     // Update step time
+     this->_ratioStep = step;
 }
 
-/// @brief Clear every led and 
+/// @brief Clear every led and delete variator
 void MyPixels::clear()
 {
      // Clear all led
@@ -793,18 +776,121 @@ void MyPixels::clear()
      _leds.show();
 }
 
-
-/// @brief Update pixel output
-void MyPixels::show()
+/// @brief Set a pixel color with a pixel object
+/// @param index Pixel to edit, start at 1
+/// @param newColor Pixel color
+void MyPixels::setPixelColor(int index, const Pixel &newColor)
 {
-
-     _leds.show();
-     this->_updateRequest = false;
-
-     // yield();
+     this->setPixelColor(index, newColor.Red, newColor.Green, newColor.Blue);
 }
 
-/// @brief Update pixel output
+/// @brief Set a pixel color with RRB values
+/// @param index Pixel to edit, start at 1
+/// @param r Red color (0..255)
+/// @param g Green color (0..255)
+/// @param b Blue color (0..255)
+void MyPixels::setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b)
+{
+     // Check if index is in range
+     if (index >= 0 && index < this->_numLEDs)
+     {
+          // Check if the pixel as variator
+          if (_asVariator(index))
+          {
+               deleteVariator(index);
+          }
+
+          // Set new pixel color
+          _leds.setPixelColor(index, r, g, b);
+
+          // Ask for pixel update
+          _updateRequest = true;
+
+#ifdef LOG
+          Serial.print("Pixels: Set pixel ");
+          Serial.print(index);
+          Serial.print(" with color ");
+          Serial.print(r);
+          Serial.print(",");
+          Serial.print(g);
+          Serial.print(",");
+          Serial.println(b);
+#endif
+     }
+}
+
+/// @brief Create a cycling effect on a pixel between two colors
+/// @param index Pixel affected by the effect
+/// @param colorStart Starting color of cycling effect
+/// @param colorEnd Ending color of cycling effect
+void MyPixels::addVariator(int index, const Pixel &colorStart, const Pixel &colorEnd)
+{
+     _variators.push_back(Variator(index, colorStart, colorEnd));
+}
+
+/// @brief Delete a cycling effect on a pixel between two colors
+/// @param index Pixel affected by the effect
+void MyPixels::deleteVariator(int index)
+{
+
+     auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index](Variator &v)
+                              {
+        if (v.getIndex() == index) {
+            _leds.setPixelColor(index, 0); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
+            return true;
+        }
+        return false; });
+
+     _variators.erase(it, _variators.end());
+
+#ifdef LOG
+     Serial.print("Pixels: Delete variator n°");
+     Serial.println(index);
+#endif
+
+     // Show up
+     _show();
+}
+
+bool MyPixels::_asVariator(int index)
+{
+     if (_variators.size() == 0)
+          return false;
+
+     // Update ratio value
+     for (auto &variateur : _variators)
+     {
+          if (variateur.getIndex() == index)
+          {
+               return true;
+          }
+     }
+
+     return false;
+}
+
+/// @brief Initalize the leds controler. DO NOT USE, already done in master
+void MyPixels::initalize()
+{
+
+#ifdef LOG
+     Serial.print("Pixels: Init ");
+     Serial.print(_numLEDs);
+     Serial.println(" pixels");
+#endif
+
+     // Set parameter of neopixel
+     _leds.updateLength(_numLEDs);
+     _leds.updateType(NEO_GRB + NEO_KHZ800);
+     _leds.setPin(0);
+
+     // Initalize pixels
+     _leds.begin();
+     _leds.clear();
+     _leds.show();
+}
+
+/// @brief Update pixel output. DO NOT USE, already done in master
 void MyPixels::update()
 {
 
@@ -839,101 +925,31 @@ void MyPixels::update()
           }
 
           // Update button
-          show();
+          _show();
      }
-
-     if (this->_updateRequest)
+     else
      {
-#ifdef LOG
-          // Log send text
-          Serial.println("LED - Update is done");
-#endif
-
-          show();
-     }
-}
-
-void MyPixels::setPixelColor(int index, const Pixel &newColor)
-{
-     // Vérifier que l'index est valide
-     if (index >= 0 && index < this->_numLEDs)
-     {
-          // Check if the pixel as variator
-          if (_asVariator(index))
+          // If update is needed
+          if (this->_updateRequest)
           {
-               deleteVariator(index);
-          }
-
-          _leds.setPixelColor(index, newColor.Red, newColor.Green, newColor.Blue);
-          // If the color change
-          // if (this->_leds[index] != newColor)
-          //{
-          // Update the colors
-          //     this->_leds[index] = newColor;
-          //     this->_updateRequest = true;
-
 #ifdef LOG
-          Serial.print("Pixels: Set pixel ");
-          Serial.print(index);
-          Serial.print(" with color ");
-          Serial.print(newColor.Red);
-          Serial.print(",");
-          Serial.print(newColor.Green);
-          Serial.print(",");
-          Serial.println(newColor.Blue);
+               // Log send text
+               Serial.println("LED - Update is done");
 #endif
 
-          //}
-     }
-}
-
-void MyPixels::setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b)
-{
-     _leds.setPixelColor(index, r, g, b);
-}
-
-void MyPixels::addVariator(int index, const Pixel &colorStart, const Pixel &colorEnd)
-{
-     _variators.push_back(Variator(index, colorStart, colorEnd));
-}
-
-void MyPixels::deleteVariator(int index)
-{
-
-     auto it = std::remove_if(_variators.begin(), _variators.end(), [this, index](Variator &v)
-                              {
-        if (v.getIndex() == index) {
-            _leds.setPixelColor(index, 0); // Mise à zéro de la couleur à la fin du variateur (ajustez selon vos besoins)
-            return true;
-        }
-        return false; });
-
-     _variators.erase(it, _variators.end());
-
-#ifdef LOG
-          Serial.print("Pixels: Delete variator n°");
-          Serial.println(index);
-#endif
-
-     // Show up
-     show();
-}
-
-bool MyPixels::_asVariator(int index)
-{
-     if (_variators.size() == 0)
-          return false;
-
-     // Update ratio value
-     for (auto &variateur : _variators)
-     {
-          if (variateur.getIndex() == index)
-          {
-               return true;
+               _show();
           }
      }
+}
 
-     return false;
+/// @brief Update pixel output
+void MyPixels::_show()
+{
+
+     _leds.show();
+     this->_updateRequest = false;
+
+     // yield();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

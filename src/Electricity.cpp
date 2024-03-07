@@ -71,12 +71,9 @@ void SetWorking(bool status)
             // Turn off every switch light
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, CRGB::Black); // turn off the led
+                pixels.addVariator(i, CRGB::Yellow, CRGB::Black);
             }
         }
-
-        // Update pixels
-        pixels.show();
     }
 }
 
@@ -120,7 +117,6 @@ void interrupts_read()
             if (!_working && !_inAnimation) // turn green the matching led if there is a breakdown
             {
                 pixels.setPixelColor(i, CRGB::Lime);
-                pixels.show();
             }
         }
 
@@ -178,9 +174,6 @@ void Succes_Anim()
             }
         }
     }
-
-    // Update pixel
-    pixels.show();
 }
 
 /// @brief The sequence is sucessful
@@ -219,7 +212,7 @@ void Fail_Anim()
         // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, CRGB::Black);
+            pixels.addVariator(i, CRGB::Yellow, CRGB::Black);
         }
 
         // Stop the ticker
@@ -246,9 +239,6 @@ void Fail_Anim()
             }
         }
     }
-    
-    // Update pixel
-    pixels.show();
 }
 
 /// @brief The sequence is faulty
@@ -294,7 +284,9 @@ void MySetup()
 
     // Define pixels property
     pixels.addLeds(NB_PIXELS);
+    pixels.timeVariator(0.1);
     //pixels.useInfoPixel();
+
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -382,9 +374,6 @@ void Received()
             // Set received color
             pixels.setPixelColor(i, Pixel(r, g, b)); // turn led blue
         }
-
-        // Update pixels
-        pixels.show();
     }
 
     if (comm.GetCode() == "POW") // recieve information from the server if it's a succes or a fail
@@ -401,7 +390,8 @@ void Received()
         }
     }
 
-    if (comm.GetCode() == "BRN") // recieve the information of a breackdown
+    // Recieve the information of a breackdown -> 0: Solved / 1: Breakdown
+    if (comm.GetCode() == "BRN") 
     {
         SetWorking(comm.GetParameter(1));
     }
@@ -427,7 +417,6 @@ void ServerSimulation()
 
         // Update the led
         pixels.setPixelColor(i, CRGB::Lime); // turn led green
-        pixels.show();
     }
 }
 

@@ -507,8 +507,6 @@ class MyPixels
 {
 private:
     /// @brief Array of leds
-    // CRGB* _leds;
-    // Adafruit_NeoPixel _leds = Adafruit_NeoPixel(6, 0, NEO_GRB + NEO_KHZ800);
     Adafruit_NeoPixel _leds = Adafruit_NeoPixel();
 
     /// @brief Number of leds
@@ -537,46 +535,36 @@ private:
     /// @brief Add variator object
     std::vector<Variator> _variators;
 
+    // Private function
+    void _show();
     bool _asVariator(int index);
 
 public:
-    /// @brief Create a pixels manager object
     MyPixels();
 
-    /// @brief Use the first pixel as status info
+    // Info pixel function
     void useInfoPixel();
-
-    /// @brief Waiting the wifi connection
     void staWaitWifi();
-
-    /// @brief Waiting for the server
     void staWaitServer();
-
-    /// @brief Waiting for the server
     void staConnected();
-
-    /// @brief Module is in simulation (Yellow)
     void staSimulation();
 
-    /// @brief Add a number of led to control
-    /// @param number Number of led in the project
+    // Function used in "MySetup" before initalization
     void addLeds(int number);
+    void timeVariator(float step);
 
-    /// @brief Initalize the leds controler. Do not used, already done in master
-    void initalize();
-
-    void show();
-
-    void update();
-
+    // User function for pixel
     void clear();
-
     void setPixelColor(int index, const Pixel &newColor);
     void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
 
+    // User function for variator
     void addVariator(int index, const Pixel &colorStart, const Pixel &colorEnd);
-
     void deleteVariator(int index);
+
+    // Fonction used in "main"
+    void initalize();
+    void update();
 };
 
 /// @brief Analog management
