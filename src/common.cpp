@@ -770,6 +770,23 @@ void MyPixels::initalize()
      _leds.show();
 }
 
+/// @brief Clear every led and 
+void MyPixels::clear()
+{
+     _leds.clear();
+
+     // Set status led back
+     todo
+
+     // Delete all variator
+     todo
+
+     // Update leds
+     _leds.show();
+
+}
+
+
 /// @brief Update pixel output
 void MyPixels::show()
 {

@@ -205,15 +205,6 @@ void MySetup()
     // Define pixels property
     pixels.addLeds(5);
 
-    /*/ Neo pixels
-    pixels.begin();
-    pixels.setBrightness(255);
-    pixels.setPixelColor(0, 111, 111, 111);
-    pixels.setPixelColor(1, pixels.Color(255, 0, 0)); // turn led red
-    pixels.setPixelColor(2, pixels.Color(0, 255, 0)); // turn led red
-    pixels.setPixelColor(3, pixels.Color(0, 0, 255)); // turn led red
-    pixels.show();
-    */
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////

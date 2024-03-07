@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 //////// Add new include library
-#include <Adafruit_NeoPixel.h>
 #include <Bounce2.h>
 #include <Ticker.h>
 
@@ -17,9 +16,7 @@ const int NB_INPUT = sizeof(INPUTPINS) / sizeof(int);
 Bounce buttons[NB_INPUT]; // using Bounce2 librairy
 
 // Neopixels setup
-#define PIN 0
 #define NB_PIXELS NB_INPUT + 1 // insert the total of pixels
-Adafruit_NeoPixel pixels(NB_PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 /// @brief number of clign for succes or fail
 const int NUM_CLIGN = 4;
@@ -65,16 +62,16 @@ void SetWorking(bool status)
         // Update status led
         if (_working)
             // Set status led to GREEN
-            pixels.setPixelColor(NB_INPUT, pixels.Color(0, 255, 0));
+            pixels.setPixelColor(NB_INPUT, CRGB::Lime);
         else
         {
             // Set status led to RED
-            pixels.setPixelColor(NB_INPUT, pixels.Color(255, 0, 0));
+            pixels.setPixelColor(NB_INPUT, CRGB::Red);
 
             // Turn off every switch light
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+                pixels.setPixelColor(i, CRGB::Black); // turn off the led
             }
         }
 
@@ -122,7 +119,7 @@ void interrupts_read()
 
             if (!_working && !_inAnimation) // turn green the matching led if there is a breakdown
             {
-                pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
+                pixels.setPixelColor(i, CRGB::Lime);
                 pixels.show();
             }
         }
@@ -154,7 +151,7 @@ void Succes_Anim()
         // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, pixels.Color(0, 255, 0, 0));
+            pixels.setPixelColor(i, CRGB::Lime);
         }
 
         // Stop the ticker
@@ -168,7 +165,7 @@ void Succes_Anim()
             // Turn off every light green
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+                pixels.setPixelColor(i, CRGB::Lime);
             }
         }
 
@@ -177,7 +174,7 @@ void Succes_Anim()
             // Turn off every light
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+                pixels.setPixelColor(i, CRGB::Black); // turn off the led
             }
         }
     }
@@ -222,7 +219,7 @@ void Fail_Anim()
         // Set color to every light
         for (int i = 0; i < NB_INPUT; i++)
         {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+            pixels.setPixelColor(i, CRGB::Black);
         }
 
         // Stop the ticker
@@ -236,7 +233,7 @@ void Fail_Anim()
             // Turn off every light green
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+                pixels.setPixelColor(i, CRGB::Red);
             }
         }
 
@@ -245,7 +242,7 @@ void Fail_Anim()
             // Turn off every light
             for (int i = 0; i < NB_INPUT; i++)
             {
-                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn off the led
+                pixels.setPixelColor(i, CRGB::Black); // turn off the led
             }
         }
     }
@@ -273,6 +270,8 @@ void Fail()
     // Create the ticker for the reste of the animation
     _Fail.attach(0.5, Fail_Anim);
 }
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                     Setup and reset                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,11 +292,8 @@ void MySetup()
         buttons[i].interval(5);
     }
 
-    // Neo pixels
-    pixels.begin();
-    pixels.setBrightness(50);
-    pixels.clear();
-    pixels.show();
+    // Define pixels property
+    pixels.addLeds(NB_PIXELS);
 }
 
 ///////////////////////////////  Reset all proprety of module  ////////////////////////////////
@@ -307,7 +303,6 @@ void ResetModule()
 {
     /// Turn off all leds
     pixels.clear();
-    pixels.show();
 
     SetWorking(true);
 }
@@ -346,19 +341,31 @@ void Received()
             switch (comm.GetParameter(2)[0])
             {
             case '0':
-                pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // turn led OFF
+                pixels.setPixelColor(i, CRGB::Black); // turn led OFF
                 break;
 
             case 'R':
-                pixels.setPixelColor(i, pixels.Color(255, 0, 0)); // turn led red
+                pixels.setPixelColor(i, Pixel(255, 0, 0)); // turn led red
                 break;
 
             case 'G':
-                pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // turn led green
+                pixels.setPixelColor(i, Pixel(0, 255, 0)); // turn led green
                 break;
 
             case 'B':
-                pixels.setPixelColor(i, pixels.Color(0, 0, 255)); // turn led blue
+                pixels.setPixelColor(i, Pixel(0, 0, 255)); // turn led blue
+                break;
+
+            case 'r':
+                pixels.addVariator(i, CRGB::Red, CRGB::Black);
+                break;
+
+            case 'g':
+                pixels.addVariator(i, CRGB::Green, CRGB::Black);
+                break;
+
+            case 'b':
+                pixels.addVariator(i, CRGB::Blue, CRGB::Black);
                 break;
             }
         }
@@ -372,7 +379,7 @@ void Received()
             int b = comm.GetParameter(4).toInt();
 
             // Set received color
-            pixels.setPixelColor(i, pixels.Color(r, g, b)); // turn led blue
+            pixels.setPixelColor(i, Pixel(r, g, b)); // turn led blue
         }
 
         // Update pixels
@@ -418,7 +425,7 @@ void ServerSimulation()
             return;
 
         // Update the led
-        pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // turn led green
+        pixels.setPixelColor(i, CRGB::Lime); // turn led green
         pixels.show();
     }
 }
