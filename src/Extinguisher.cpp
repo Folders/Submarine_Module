@@ -43,13 +43,11 @@ Bounce contact = Bounce();
 int percent;
 
 // animations
-byte batt_lvl_charging = 9;
-byte batt_lvl_refill;
+byte battery_lvl = 9;
+bool symbolcolor;
+bool a_symbolcolor;
 
-bool arrowcolor;
-bool lightingcolor;
-bool a_arrowcolor;
-bool a_lightingcolor;
+//Buttons
 bool trigger_button;
 bool contact_button;
 
@@ -60,45 +58,26 @@ XT_DAC_Audio_Class DacAudio(25, 0); // Create the main player class object.
                                     // Use GPIO 25, one of the 2 DAC pins and timer 0
 bool play_song;
 
-/// @brief make cligning the arrow
-void clign_symbol_arrow()
+/// @brief make cligning the lighting and arrow symbols
+void clign_symbol()
 {
     // change color with ticker
-    arrowcolor = !arrowcolor;
+    symbolcolor = !symbolcolor;
 }
 
-/// @brief charging battery animation
-void refill_battery_animation() // for charging animation
+/// @brief battery animation
+void battery_animation() // for charging animation
 {
-    batt_lvl_charging++; // add bars to battery
-    if (batt_lvl_charging > 11)
+    battery_lvl++; // add bars to battery
+    if (battery_lvl > 11)
     {
-        batt_lvl_charging = 0; // restart charging animation
-    }
-}
-
-/// @brief make clingning the lighting
-void clign_symbol_lighting()
-{
-    // change color with ticker
-    lightingcolor = !lightingcolor;
-}
-
-/// @brief using battery animation
-void using_battery_animation() // for using battery animation
-{
-    batt_lvl_refill++;
-    if (batt_lvl_refill > 11)
-    {
-        batt_lvl_refill = 0;
+        battery_lvl = 0; // restart charging animation
     }
 }
 
 // Tickers
-Ticker _Clign(clign_symbol_arrow, 1000, 0, MILLIS);
-Ticker _Clign_1(clign_symbol_lighting, 1000, 0, MILLIS);
-Ticker _Animation(refill_battery_animation, (1000 * ANIM_FREQUENCE), 0, MILLIS);
-Ticker _Animation_1(using_battery_animation, (1000 * ANIM_FREQUENCE), 0, MILLIS);
+Ticker _Clign(clign_symbol, 1000, 0, MILLIS);
+Ticker _Animation(battery_animation, (1000 * ANIM_FREQUENCE), 0, MILLIS);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //                                      User function                                      //
@@ -163,16 +142,16 @@ void display_battery_unfill()
     // unfill effect
     for (int i = 0; i < 11; i++)
     {
-        if (i < batt_lvl_charging)
+        if (i < battery_lvl)
         {
             display.fillRect((22 + (10 - i) * 8), 12, 6, 40, BLACK);
         }
     }
 
     // Arrow symbol
-    a_arrowcolor = arrowcolor ? BLACK : WHITE; // change arrow's logo color
-    display.fillRect(8, 29, 8, 5, a_arrowcolor);
-    display.fillTriangle(2, 31, 8, 27, 8, 35, a_arrowcolor); //
+    a_symbolcolor = symbolcolor ? BLACK : WHITE; // change arrow's logo color
+    display.fillRect(8, 29, 8, 5, a_symbolcolor);
+    display.fillTriangle(2, 31, 8, 27, 8, 35, a_symbolcolor); //
     display.display();
 }
 
@@ -186,7 +165,7 @@ void display_battery_refill()
     display.drawRect(110, 24, 4, 16, WHITE);
 
     // Refill effect
-    for (int i = 0; i <= batt_lvl_refill && i <= 11; i++)
+    for (int i = 0; i <= battery_lvl && i <= 11; i++)
     {
         if (i <= 10)
         {
@@ -199,9 +178,9 @@ void display_battery_refill()
     }
 
     // lighting symbol
-    a_lightingcolor = lightingcolor ? BLACK : WHITE; // change lighing's symbol color
-    display.fillTriangle(12, 26, 8, 33, 12, 31, a_lightingcolor);
-    display.fillTriangle(10, 37, 10, 32, 14, 29, a_lightingcolor);
+    a_symbolcolor = symbolcolor ? BLACK : WHITE; // change lighing's symbol color
+    display.fillTriangle(12, 26, 8, 33, 12, 31, a_symbolcolor);
+    display.fillTriangle(10, 37, 10, 32, 14, 29, a_symbolcolor);
 
     display.display();
 }
@@ -224,7 +203,7 @@ void read_buttons()
             digitalWrite(LED_IR, HIGH); // turn on IR led
 
             trigger_button = true;
-            batt_lvl_charging = 9;
+            battery_lvl = 9;
 
             // play the song
             play_song = true;
@@ -321,9 +300,8 @@ void MySetup()
 
     // Start tickers
     _Clign.start();
-    _Clign_1.start();
     _Animation.start();
-    _Animation_1.start();
+
 
     // Sound setup
     pinMode(CONTROL_PIN, OUTPUT);
@@ -345,9 +323,8 @@ void MyLoop()
 {
     // Update tickers
     _Clign.update();
-    _Clign_1.update();
     _Animation.update();
-    _Animation_1.update();
+
     DacAudio.FillBuffer(); // Fill the sound buffer with data
 
     read_buttons(); // read buttons
