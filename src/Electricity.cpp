@@ -300,6 +300,29 @@ void ResetModule()
     SetWorking(true);
 }
 
+
+/// @brief Function called when the state of a module change.
+/// @param state New state: '0' = disabled, '1' = enabled. Can use other value depanding of the module
+void Enable(char state)
+{
+    switch (state)
+    {
+    case '0':
+        pixels.clear();
+        pixels.staDisabled();
+        
+        break;
+
+    case '1':
+        ResetModule();
+        pixels.staConnected();
+        break;
+    
+    default:
+        break;
+    }
+}
+
 /////////////////////////////////  Write here the loop code  /////////////////////////////////
 /// @brief Call at the end of the main loop function
 void MyLoop()

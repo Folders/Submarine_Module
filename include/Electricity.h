@@ -9,11 +9,14 @@
 /// @brief Setup function of module
 void MySetup();
 
-/// @brief Reset function of module
-void ResetModule();
-
 /// @brief Loop function of module
 void MyLoop();
+
+/// @brief Reset function of module
+void StartModule();
+
+/// @brief Stop function of module
+void StopModule();
 
 /// @brief Function called when a message is received
 void Received();

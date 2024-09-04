@@ -548,6 +548,7 @@ public:
     void staWaitServer();
     void staConnected();
     void staSimulation();
+    void staDisabled();
 
     // Function used in "MySetup" before initalization
     void addLeds(int number);

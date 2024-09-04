@@ -341,9 +341,24 @@ void loop()
                     }
 
                     // Server ask for a reset of module
+                    else if (str == "ENB")
+                    {
+                        switch (comm.GetParameter(1)[0])
+                        {
+                        case '0':
+                            StopModule();
+                            break;
+                        
+                        case '1':
+                            StartModule();
+                            break;
+                        }
+                    }
+
+                    // Server ask for a reset of module
                     else if (str == "RST")
                     {
-                        ResetModule();
+                        StartModule();
                     }
 
                     // Server ask for a PING request

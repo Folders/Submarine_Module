@@ -743,6 +743,22 @@ void MyPixels::staSimulation()
      _leds.show();
 }
 
+/// @brief Module is disabled (Grey)
+void MyPixels::staDisabled()
+{
+#ifdef LOG
+     Serial.println("Status: Disabled");
+#endif
+     // Backup of color
+     _infoCOlor = 0x808080;
+
+     // Put the led in color
+     _leds.setPixelColor(0, _infoCOlor);
+
+     // Update color
+     _leds.show();
+}
+
 /// @brief Add a number of led to control. Need to be done in MySetup
 /// @param number Number of led in the project
 void MyPixels::addLeds(int number)
